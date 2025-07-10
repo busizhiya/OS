@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+        "print.h": "c",
+        "stdint.h": "c",
+        "init.h": "c",
+        "interrupt.h": "c",
+        "debug.h": "c",
+        "global.h": "c",
+        "cstdlib": "c",
+        "_types.h": "c",
+        "__bit_reference": "c",
+        "__string": "c",
+        "cstring": "c"
+    }
+}
