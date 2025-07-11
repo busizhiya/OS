@@ -216,7 +216,7 @@ p_mode_start:
 
 enter_kernel:
     call kernel_init    ;0x0d74
-    mov esp, 0xc009f000
+    mov esp, 0xc009f000 ;设置栈顶
     jmp KERNEL_ENTRY_POINT ;0x0d7ew
 
 
@@ -352,6 +352,9 @@ setup_page:
     loop .clear_page_dir
 
 ;创建PDE
+;创建PDE就是在PAGE_DIR_TABLE_POS~PAGE_DIR_TABLE_POS+4K这个页中, 填充页目录项所映射的页表地址
+;每个页目录项所指代总地址是4M = 4K * (4K/4)(页大小4K/页表项大小4B) = 4M
+;此处仅映射了0x00000000和0xc0000000这两个页
 .create_pde:
     mov eax, PAGE_DIR_TABLE_POS
     add eax, 0x1000 ;现在eax是第一个页表的地址
@@ -368,28 +371,39 @@ setup_page:
     mov [PAGE_DIR_TABLE_POS + 4092], eax    ;末尾目录项指向自己(页目录)
 
 ;创建PTE
+;意思就是在第一个页表内(逻辑地址0~4M)映射物理地址
 ;此处只为1M低端内存分配 1M/4K=256页
     mov ecx, 256
     mov esi, 0
     mov edx, PG_US_U | PG_RW_W | PG_P
 .create_pte:
+    ;ebx现在是第一个页表的基址
+    ;向页表中映射实际的物理地址
     mov [ebx+esi*4],edx ;edx基址对应物理地址0x0000, 属性位如上
     ;ebx在.create_pde中已经设置为第一个页表的地址
-    add edx, 4096
-    inc esi
+    add edx, 4096   ;物理地址向下一个页
+    inc esi ;页表中下标+1, 即下一个页表项, 而每一个页表项指代一个页
     loop .create_pte
 
 ;创建内核其他表的PDE
     mov eax, PAGE_DIR_TABLE_POS
     add eax, 0x2000
+    ;现在eax是第二个页表的地址
     or eax, PG_US_U | PG_RW_W | PG_P
     mov ebx, PAGE_DIR_TABLE_POS
+    ;ebx是页目录表基址
     mov ecx, 254
     mov esi, 769
-.create_kernel_pde:
+.create_kernel_pte:
+    ;填充内核所占用的内存的页目录项769~1022
+    ;相当于是将3G~4G(逻辑地址)的页目录项指向后面的页表(从第二个页表开始, 因为第一个页表给了低端4M)
+    ;可以发现, 实际分配个内核的空间是1G-4M
+    ;因为最后一个页目录项指向页表自己, 而一个页目录项(一个页表)中有1024个页, 共4M
+    ;即1024个页表项里面, 最后四分之一(3G~4G逻辑地址] aka. 第[769,1022]页目录项中, 少了最后两个第1023和1024项
+    ;又因为物理低端4M内存是补给后面3G~4G的, 故相当于总共少了4M
     mov [ebx+esi*4], eax
     inc esi
     add eax, 0x1000
-    loop .create_kernel_pde
+    loop .create_kernel_pte
     ret
     

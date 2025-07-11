@@ -10,6 +10,24 @@
         "_types.h": "c",
         "__bit_reference": "c",
         "__string": "c",
-        "cstring": "c"
+        "cstring": "c",
+        "__hash_table": "c",
+        "__tree": "c",
+        "algorithm": "c",
+        "chrono": "c",
+        "deque": "c",
+        "functional": "c",
+        "locale": "c",
+        "memory": "c",
+        "random": "c",
+        "string": "c",
+        "type_traits": "c",
+        "vector": "c",
+        "format": "c",
+        "ranges": "c",
+        "tuple": "c",
+        "string.h": "c",
+        "bitmap.h": "c",
+        "memory.h": "c"
     }
 }
