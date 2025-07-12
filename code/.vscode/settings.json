@@ -28,6 +28,7 @@
         "tuple": "c",
         "string.h": "c",
         "bitmap.h": "c",
-        "memory.h": "c"
+        "memory.h": "c",
+        "thread.h": "c"
     }
 }
