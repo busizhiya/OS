@@ -2,7 +2,7 @@
 cd ../kernel
 for i in $(ls -l *.asm | awk -F ' ' '{print $9}' | awk -F '.' '{print $1}')
 do
-	/opt/nasm-2.15.05/nasm -f elf32 $i.asm -o ../build/$i.o
+	/opt/nasm-2.15.05/nasm -f elf32 $i.asm -o ../build/$i\_asm.o
 done
 for i in $(ls -l *.c | awk -F ' ' '{print $9}' | awk -F '.' '{print $1}')
 do
@@ -18,7 +18,7 @@ done
 cd ../lib/kernel
 for i in $(ls -l *.asm | awk -F ' ' '{print $9}' | awk -F '.' '{print $1}')
 do
-	/opt/nasm-2.15.05/nasm -f elf32 $i.asm -o ../../build/$i.o
+	/opt/nasm-2.15.05/nasm -f elf32 $i.asm -o ../../build/$i\_asm.o
 done
 for i in $(ls -l *.c | awk -F ' ' '{print $9}' | awk -F '.' '{print $1}')
 do
@@ -35,4 +35,8 @@ cd ../thread
 for i in $(ls -l *.c | awk -F ' ' '{print $9}' | awk -F '.' '{print $1}')
 do
         x86_64-elf-gcc -o ../build/$i.o $i.c -c -m32 -ffreestanding -nostdlib -fno-builtin
+done
+for i in $(ls -l *.asm | awk -F ' ' '{print $9}' | awk -F '.' '{print $1}')
+do
+	/opt/nasm-2.15.05/nasm -f elf32 $i.asm -o ../build/$i\_asm.o
 done

@@ -198,3 +198,25 @@ put_int:
     ret
     
 
+;----  set_cursor -----;
+;功能: 设置光标
+;输入: uint32_t cursor_pos
+global set_cursor
+set_cursor:
+    pushad
+    mov ebp, esp
+    mov bx, [ebp+4*9]  ;8*4 + 4(返回地址)
+    mov dx, 0x03d4
+    mov al, 0x0e
+    out dx, al
+    mov dx, 0x03d5
+    mov al, bh
+    out dx, al
+    mov dx, 0x03d4
+    mov al, 0x0f
+    out dx, al
+    mov dx, 0x03d5
+    mov al, bl
+    out dx, al
+    popad
+    ret

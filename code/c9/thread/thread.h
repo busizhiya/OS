@@ -1,9 +1,9 @@
 #ifndef __THREAD_THREAD_H
 #define __THREAD_THREAD_H
 #include "../lib/kernel/stdint.h"
+#include "../lib/kernel/list.h"
 
 typedef void thread_func(void*);
-
 enum task_status{
     TASK_RUNNING,
     TASK_READY,
@@ -37,9 +37,12 @@ struct intr_stack{
     uint32_t eflags;
     void* esp;
     uint32_t ss;
-};
+};  //实际上不一定有下面内容, 故数据与内存使用不一定刚好对应
+
 /*用于switch_to时保存线程环境*/
 struct thread_stack{
+    //self_kstack地址存储的数据结构
+    //只是按照如下顺序存储
     uint32_t ebp;
     uint32_t ebx;
     uint32_t edi;
@@ -50,14 +53,24 @@ struct thread_stack{
     thread_func* function;
     void* func_arg;
 };
-
+//PCB页内数据
 struct task_struct{
-    uint32_t* self_kstack;
+    uint32_t* self_kstack;  //指向栈顶
     enum task_status status;
     uint8_t priority;
     char name[16];
+    uint8_t ticks;
+    uint32_t elasped_ticks;
+    struct list_elem general_tag;
+    struct list_elem all_list_tag;
+    uint32_t* pgdir;
     uint32_t stack_magic;   //栈边界,判断溢出
+
 };
 
 struct task_struct* thread_start(char* name, int prio, thread_func function, void* func_arg);
+static void make_main_thread(void);
+struct task_struct* running_thread(void);
+void schedule(void);
+void thread_init(void);
 #endif

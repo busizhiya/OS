@@ -62,6 +62,11 @@ static void make_idt_desc(struct gate_desc* p_gdesc,uint8_t attr,intr_handler fu
     p_gdesc->func_offset_high_word = (uint32_t)function & 0xFFFF0000;
 }
 
+/*注册安装中断处理程序*/
+void register_handler(uint8_t vector_no, intr_handler function){
+    idt_table[vector_no] = function;
+}
+
 /*初始化描述符表 */
 static void idt_desc_init(void){
     for(int i = 0; i < IDT_DESC_CNT; i++)
@@ -71,10 +76,24 @@ static void idt_desc_init(void){
 }
 static void general_inir_handler(uint8_t vec_nr){
     if(vec_nr == 0x27 || vec_nr == 0x2f) return;
-    
-    put_str("int vector : 0x");
-    put_int(vec_nr);
-    put_char('\n');
+    set_cursor(0);
+    int cursor_pos = 0;
+    while(cursor_pos < 320){
+        put_char(' ');
+        cursor_pos++;
+    }
+    set_cursor(0);
+    put_str("!!!!!  exception message begin !!!!\n");
+    set_cursor(88);
+    put_str(intr_name[vec_nr]);
+    if(vec_nr == 14){   //PAGE FAULT
+        int page_fault_vaddr = 0;
+        asm ("movl %%cr2, %0" : "=r"(page_fault_vaddr));
+        put_str("\n page fault addr is ");
+        put_int(page_fault_vaddr);
+    }
+    put_str("\n!!!!!    exception message end   !!!!!\n");
+    while(1);
 }
 /*一般中断处理函数注册&异常名称注册*/
 static void exception_init(void){
@@ -133,7 +152,7 @@ enum intr_status intr_disable(){
     }
 }
 
-enum intr_status insr_set_status(enum intr_status status){
+enum intr_status intr_set_status(enum intr_status status){
     return status & INTR_ON ? intr_enable() : intr_disable(); 
 }
 

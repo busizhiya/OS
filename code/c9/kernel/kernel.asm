@@ -15,7 +15,7 @@ intr_entry_table:
 section .text
 intr%1entry:
 
-    %2
+    %2  ;错误码
     ;保护上下文环境
     push ds
     push es
