@@ -3,6 +3,7 @@
 #include "../../kernel/global.h"
 #define offset(struct_type, member) (int)(&(((struct_type*)0)->member))
 //(a->b) 等价于(基址+变址), 基址为0, 得到的地址为变址
+//用于general_tag变为task_struct线程对象(PCB基址)
 #define elem2entry(struct_type, struct_member_name, elem_ptr) \
 (struct_type*)((int)elem_ptr - offset(struct_type, struct_member_name))
 //元素指针-相对偏移 = 基址

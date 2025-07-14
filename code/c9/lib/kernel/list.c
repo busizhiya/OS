@@ -23,11 +23,11 @@ void list_insert_before(struct list_elem* before, struct list_elem* elem){
    before->prev = elem;
    intr_set_status(old_status);
 }
-
+//从头插入
 void list_push(struct list* plist, struct list_elem* elem){
     list_insert_before(plist->head.next, elem);
 }
-
+//从尾插入
 void list_append(struct list* plist, struct list_elem* elem){
     list_insert_before(&plist->tail, elem);
 }
@@ -57,6 +57,7 @@ bool elem_find(struct list* plist, struct list_elem* obj_elem){
 bool list_empty(struct list* plist){
     return (plist->head.next == &plist->tail ? true : false);
 }
+//寻找符合筛选函数func的节点
 struct list_elem* list_traversal(struct list* plist, function func, int arg){
     struct list_elem* elem = plist->head.next;
     if(list_empty(plist))

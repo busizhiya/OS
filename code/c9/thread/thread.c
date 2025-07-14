@@ -79,7 +79,7 @@ struct task_struct* thread_start(char* name, int prio, thread_func function, voi
 static void make_main_thread(void){
     /*main线程的pcb已经预留在0xc009e000, 不需要额外申请一页内存*/
     main_thread = running_thread();
-    init_thread(main_thread, "main", 31);
+    init_thread(main_thread, "main", 1);
     ASSERT(!elem_find(&thread_all_list, &main_thread->all_list_tag));
     list_append(&thread_all_list,&main_thread->all_list_tag);
 }
@@ -116,4 +116,31 @@ void thread_init(void){
     //为当前main函数创建线程
     make_main_thread();
     put_str("thread_init done");
+}
+
+/*当前线程主动将自己阻塞*/
+void thread_block(enum task_status stat){
+    ASSERT(((stat == TASK_BLOCKED) || (stat == TASK_WAITING) || (stat == TASK_HANGING)));
+    enum intr_status old_status = intr_disable();
+    struct task_struct* cur_thread = running_thread();
+    cur_thread->status = stat;
+    schedule(); //将当前线程换下处理器
+    intr_set_status(old_status);    //已被唤醒, 恢复之前中断状态 
+}
+/*将线程pthread唤醒(解除阻塞)*/
+void thread_unblock(struct task_struct* pthread){
+    enum intr_status old_status = intr_disable();
+    enum task_status stat = pthread->status;
+    ASSERT(((stat == TASK_BLOCKED) || (stat == TASK_WAITING) || (stat == TASK_HANGING)));
+    if(stat != TASK_READY){
+        ASSERT(!elem_find(&thread_ready_list,&pthread->general_tag));
+        if(elem_find(&thread_ready_list,&pthread->general_tag))
+        {
+            PANIC("thread_unblock: blocked thread in ready_list");
+        }
+        //自动置于等待队列最前端
+        list_push(&thread_ready_list,&pthread->general_tag);
+        pthread->status = TASK_READY;
+    }  
+    intr_set_status(old_status);
 }

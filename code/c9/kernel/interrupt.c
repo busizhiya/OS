@@ -4,7 +4,7 @@
 #include "../lib/kernel/io.h"
 #include "../lib/kernel/print.h"
 
-#define IDT_DESC_CNT 0x21   //33个
+#define IDT_DESC_CNT 0x30   //48个
 #define PIC_M_CRTL 0x20
 #define PIC_M_DATA 0x21
 #define PIC_S_CRTL 0xa0
@@ -47,8 +47,9 @@ static void pic_init(void){
     outb(PIC_S_DATA, 0x02); //设置从片连接到住片的IC2引脚
     outb(PIC_S_DATA, 0x01);
 
-    //打开主片的IR0, 即仅接受始终中断
-    outb(PIC_M_DATA, 0xfe);
+    //打开主片的IR0, 即仅接受时钟中断
+    //值测试硬盘中断
+    outb(PIC_M_DATA, 0xfd);
     outb(PIC_S_DATA, 0xff);
     put_str("   pic_init done\n");
 }
