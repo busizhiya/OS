@@ -29,6 +29,12 @@
         "string.h": "c",
         "bitmap.h": "c",
         "memory.h": "c",
-        "thread.h": "c"
+        "thread.h": "c",
+        "list.h": "c",
+        "timer.h": "c",
+        "sync.h": "c",
+        "io.h": "c",
+        "keyboard.h": "c",
+        "ioqueue.h": "c"
     }
 }
