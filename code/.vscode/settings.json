@@ -35,6 +35,8 @@
         "sync.h": "c",
         "io.h": "c",
         "keyboard.h": "c",
-        "ioqueue.h": "c"
+        "ioqueue.h": "c",
+        "tss.h": "c",
+        "process.h": "c"
     }
 }

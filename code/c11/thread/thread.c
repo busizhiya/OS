@@ -7,6 +7,8 @@
 #include "../lib/kernel/list.h"
 #include "../kernel/interrupt.h"
 #include "../lib/kernel/print.h"
+#include "../userprog/process.h"
+#include "../device/console.h"
 #define PG_SIZE 4096
 
 struct task_struct* main_thread;//主线程PCB
@@ -79,7 +81,7 @@ struct task_struct* thread_start(char* name, int prio, thread_func function, voi
 static void make_main_thread(void){
     /*main线程的pcb已经预留在0xc009e000, 不需要额外申请一页内存*/
     main_thread = running_thread();
-    init_thread(main_thread, "main", 31);
+    init_thread(main_thread, "main", 62);
     ASSERT(!elem_find(&thread_all_list, &main_thread->all_list_tag));
     list_append(&thread_all_list,&main_thread->all_list_tag);
 }
@@ -88,8 +90,12 @@ static void make_main_thread(void){
 void schedule(){
 
     ASSERT(intr_get_status() == INTR_OFF);
-
+    
+    
     struct task_struct* cur = running_thread();
+    D_put_str("Schedule: ");
+    D_put_str(cur->name);
+    D_put_char('\n');
     if(cur->status == TASK_RUNNING){
         //时间片用完了
         ASSERT(!elem_find(&thread_ready_list, &cur->general_tag));
@@ -107,6 +113,9 @@ void schedule(){
     thread_tag = list_pop(&thread_ready_list);
     struct task_struct* next = elem2entry(struct task_struct, general_tag, thread_tag);
     next->status = TASK_RUNNING;
+    process_activate(next);
+    D_put_str("Schedule: ready to enter switch_to\n");
+    D_put_char('\n');
     switch_to(cur, next);
 }
 void thread_init(void){

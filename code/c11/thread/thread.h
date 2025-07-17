@@ -2,6 +2,8 @@
 #define __THREAD_THREAD_H
 #include "../lib/kernel/stdint.h"
 #include "../lib/kernel/list.h"
+#include "../kernel/memory.h"
+#include "../lib/kernel/bitmap.h"
 
 typedef void thread_func(void*);
 enum task_status{
@@ -64,6 +66,7 @@ struct task_struct{
     struct list_elem general_tag;
     struct list_elem all_list_tag;
     uint32_t* pgdir;
+    struct virtual_addr userprog_vaddr;
     uint32_t stack_magic;   //栈边界,判断溢出
 
 };
@@ -73,7 +76,9 @@ static void make_main_thread(void);
 struct task_struct* running_thread(void);
 void schedule(void);
 void thread_init(void);
+void init_thread(struct task_struct* pthread, char* name, int prio);
 void thread_unblock(struct task_struct* pthread);
 void thread_block(enum task_status stat);
+void thread_create(struct task_struct* pthread, thread_func function, void* func_arg);
 
 #endif

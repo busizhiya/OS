@@ -13,7 +13,7 @@
     位图起始地址 0xc009a000
     最多容纳四个页框
 */
-#define K_HEAP_START 0xc010000  //跨越低端1M, 在逻辑上连续
+#define K_HEAP_START 0xc0100000  //跨越低端1M, 在逻辑上连续
 
 struct pool{    //内存池, 用于管理物理内存
     struct bitmap pool_bitmap;  //物理内存的位图

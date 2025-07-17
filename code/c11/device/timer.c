@@ -18,11 +18,11 @@
 uint32_t ticks; //紫中断开启后,总刻数
 
 static void intr_timer_handler(void){
+    
     struct task_struct* cur_thread = running_thread();
     ASSERT(cur_thread->stack_magic == 0x20070515);  //检查栈溢出
     cur_thread->elasped_ticks++;
     ticks++;
-
     if(cur_thread->ticks == 0)
         schedule(); //当前线程时间片用完, 需要调度新的线程
     else
