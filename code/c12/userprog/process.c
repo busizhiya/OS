@@ -131,6 +131,7 @@ void process_execute(void* filename, char* name){
     create_user_vaddr_bitmap(thread);
     thread_create(thread, start_process, filename);
     thread->pgdir = create_page_dir();
+    block_desc_init(thread->u_block_descs);
     D_put_str("pgdir_vaddr = ");
     D_put_int((uint32_t)thread->pgdir);
     D_put_char('\n');

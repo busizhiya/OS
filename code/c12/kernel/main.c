@@ -9,6 +9,7 @@
 #include "../device/keyboard.h"
 #include "../userprog/process.h"
 #include "../lib/user/syscall.h"
+#include "../lib/stdio.h"
 
 void k_thread_a(void* arg);
 void k_thread_b(void* arg);
@@ -22,12 +23,11 @@ int main(void)
     init_all();
     //ASSERT(1==2);
     thread_start("k_thread_a",31,k_thread_a,"argA ");
-    thread_start("k_thread_b",31,k_thread_b,"argB ");
+    //thread_start("k_thread_b",31,k_thread_b,"argB ");
     //process_execute(u_prog_a,"user_prog_a");
     //process_execute(u_prog_b,"user_prog_b");
-    put_str("Main pid =");
-    put_int(getpid());
-    put_char('\n');
+    printf("printf: main's pid = %x\n",getpid());
+    printf("I am %s, my pid is %x%c",running_thread()->name,getpid(),'\n');
     intr_enable();
     while(1);
     return 0;
@@ -35,9 +35,15 @@ int main(void)
 
 void k_thread_a(void* arg){
     char* para = arg;
-    put_str("kt_a pid =");
-    put_int(getpid());
-    put_char('\n');
+    void* ptr1 = malloc(1024);
+    void* ptr2 = malloc(1024);
+    printf("k_thread_a: ptr1, addr is 0x%x\n",(uint32_t)ptr1);
+    printf("k_thread_a: ptr2, addr is 0x%x\n",(uint32_t)ptr2);
+    free(ptr1);
+    void* ptr3 = malloc(1024);
+    printf("k_thread_a: ptr3, addr is 0x%x\n",(uint32_t)ptr3);
+    void* ptr4 = malloc(1024);
+    printf("k_thread_a: ptr4, addr is 0x%x\n",(uint32_t)ptr4);
     while(1){
         //console_put_str("v_a:0x");
         //console_put_int(test_var_a);
@@ -45,9 +51,7 @@ void k_thread_a(void* arg){
 }
 void k_thread_b(void* arg){
     char* para = arg;
-    put_str("kt_b pid =");
-    put_int(getpid());
-    put_char('\n');
+    printf("k_thread_a: sys_malloc(63), addr is 0x%x\n",(uint32_t)sys_malloc(63));
     while(1){
         //console_put_str("v_b:0x"); 
         //console_put_int(test_var_b);

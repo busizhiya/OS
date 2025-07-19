@@ -225,7 +225,7 @@ void* get_user_pages(uint32_t pg_cnt){
 /* 将地址vaddr与pf池中的物理地址关联, 仅支持一页空间分配*/
 void* get_a_page(enum pool_flags pf, uint32_t vaddr){
     struct pool* mem_pool = pf & PF_KERNEL ? &kernel_pool : &user_pool;
-    lock_acquire(&user_pool.lock);
+    lock_acquire(&mem_pool->lock);
 
     struct task_struct* cur = running_thread();
     int32_t bit_idx = -1;
@@ -247,7 +247,7 @@ void* get_a_page(enum pool_flags pf, uint32_t vaddr){
     if(page_phyaddr == NULL)
         return NULL;
     page_table_add((void*)vaddr, page_phyaddr);
-    lock_release(&user_pool.lock);
+    lock_release(&mem_pool->lock);
     return (void*)vaddr;
 }
 

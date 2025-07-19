@@ -37,6 +37,22 @@
         "keyboard.h": "c",
         "ioqueue.h": "c",
         "tss.h": "c",
-        "process.h": "c"
+        "process.h": "c",
+        "stdio.h": "c",
+        "__split_buffer": "c",
+        "array": "c",
+        "bitset": "c",
+        "initializer_list": "c",
+        "iterator": "c",
+        "list": "c",
+        "map": "c",
+        "queue": "c",
+        "set": "c",
+        "span": "c",
+        "stack": "c",
+        "string_view": "c",
+        "unordered_map": "c",
+        "unordered_set": "c",
+        "utility": "c"
     }
 }

@@ -43,7 +43,21 @@
     retval;         \
 })
 
-
+/*获取当前进程pid*/
 uint32_t getpid(void){
     return _syscall0(SYS_GETPID);
+}
+
+/*向标准输出写入str*/
+uint32_t write(char* str){
+    return _syscall1(SYS_WRITE,str);
+}
+/*申请size字节大小的内存, 返回申请的虚拟地址*/
+void* malloc(uint32_t size){
+    return (void*)_syscall1(SYS_MALLOC,size);
+}
+
+/*释放ptr所指向的内存*/
+void free(void* ptr){
+    _syscall1(SYS_FREE,ptr);
 }
