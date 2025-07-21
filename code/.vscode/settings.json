@@ -53,6 +53,10 @@
         "string_view": "c",
         "unordered_map": "c",
         "unordered_set": "c",
-        "utility": "c"
+        "utility": "c",
+        "stdio_kernel.h": "c",
+        "typeinfo": "c",
+        "text_encoding": "c",
+        "__locale": "c"
     }
 }
