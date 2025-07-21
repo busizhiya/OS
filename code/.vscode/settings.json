@@ -57,6 +57,8 @@
         "stdio_kernel.h": "c",
         "typeinfo": "c",
         "text_encoding": "c",
-        "__locale": "c"
+        "__locale": "c",
+        "ide.h": "c",
+        "fs.h": "c"
     }
 }
