@@ -65,7 +65,7 @@ char* strchr(const char* str, const uint8_t ch){
     }
     return NULL;
 }
-
+/*从末尾向前寻找某个字符*/
 char* strrchr(const char* str, const uint8_t ch){
     ASSERT(str != NULL);
     const char* last_char = NULL;
@@ -80,7 +80,8 @@ char* strrchr(const char* str, const uint8_t ch){
 char* strcat(char* dst_, const char* src_){
     ASSERT(dst_ != NULL && src_ != NULL);
     char* str = dst_;
-    while(*++str);
+    while(*str++);
+    --str;
     while((*str++ = *src_++));
     return dst_;
 }

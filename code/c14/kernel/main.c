@@ -10,6 +10,7 @@
 #include "../userprog/process.h"
 #include "../lib/user/syscall.h"
 #include "../lib/stdio.h"
+#include "../fs/fs.h"
 
 void k_thread_a(void* arg);
 void k_thread_b(void* arg);
@@ -28,8 +29,9 @@ int main(void)
     //process_execute(u_prog_b,"user_prog_b");
     //printf("printf: main's pid = %x\n",getpid());
     //printf("I am %s, my pid is %x%c",running_thread()->name,getpid(),'\n');
-    
-    intr_enable();
+    sys_open("/file1", O_CREAT);
+
+    //intr_enable();
     while(1);
     return 0;
 }
