@@ -31,6 +31,12 @@ struct path_search_record{
     struct dir* parent_dir; //直接父目录
     enum file_types file_type;  //文件类型
 };
+/*文件属性*/
+struct stat{
+    uint32_t st_ino;    //inode编号
+    uint32_t st_size;   //尺寸
+    enum file_types st_filetype;//文件类型
+};
 
 void filesys_init();
 static bool mount_partition(struct list_elem* pelem, int arg);
@@ -51,5 +57,6 @@ void sys_rewinddir(struct dir* dir);
 int32_t sys_rmdir(const char* pathname);
 char* sys_getcwd(char* buf, uint32_t size);
 int32_t sys_chdir(const char* path);
+int32_t sys_stat(const char* path, struct stat* buf);
 
 #endif

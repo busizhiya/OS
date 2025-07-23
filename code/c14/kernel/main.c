@@ -31,15 +31,12 @@ int main(void)
     //process_execute(u_prog_b,"user_prog_b");
     //printf("printf: main's pid = %x\n",getpid());
     //printf("I am %s, my pid is %x%c",running_thread()->name,getpid(),'\n');
-    char cwd_buf[32];
-    memset(cwd_buf, 0, 32);
-    sys_getcwd(cwd_buf, 32);
-    printf("cwd: %s\n", cwd_buf);
-    sys_chdir("/dir1");
-    printf("cwd changed\n");
-    sys_getcwd(cwd_buf, 32);
-    printf("cwd: %s\n",cwd_buf);
-
+    struct stat obj_stat;
+    sys_stat("/",&obj_stat);
+    printf("/'s info:\n\ti_no:%d\tsize:%d\tfiletype:%s\n",obj_stat.st_ino, obj_stat.st_size, obj_stat.st_filetype == 2 ? "directory" : "regular");
+    sys_stat("/dir1",&obj_stat);
+    printf("/dir1's info:\n\ti_no:%d\tsize:%d\tfiletype:%s\n",obj_stat.st_ino, obj_stat.st_size, obj_stat.st_filetype == 2 ? "directory" : "regular");
+    
 
     //intr_enable();
     while(1);
