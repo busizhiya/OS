@@ -14,6 +14,7 @@ struct inode{
     uint32_t i_sectors[13]; //0~11是直接块, 12存储一级间接块指针
     struct list_elem inode_tag;
 };
+
 struct inode* inode_open(struct partition* part, uint32_t inode_no);
 void inode_close(struct inode* inode);
 void inode_sync(struct partition* part, struct inode* inode, void* io_buf);

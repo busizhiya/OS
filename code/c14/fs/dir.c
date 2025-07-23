@@ -95,8 +95,8 @@ void create_dir_entry(char* filename, uint32_t inode_no, uint8_t file_type, stru
     p_de->f_type = file_type;
 }
 
-/*将目录项p_de写入父目录parent_dir中,io_buf由主调函数提供*/
 //问题:第一级间接块未读入all_blocks中, 导致i_sectors[12]被重复覆盖, 无法分配更多的内存
+/*将目录项p_de写入父目录parent_dir中,io_buf由主调函数提供*/
 bool sync_dir_entry(struct dir* parent_dir, struct dir_entry* p_de, void* io_buf){
     struct inode* dir_inode = parent_dir->inode;
     uint32_t dir_size = dir_inode->i_size;
