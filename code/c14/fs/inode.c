@@ -1,6 +1,7 @@
 #include "../lib/kernel/stdint.h"
 #include "inode.h"
 #include "fs.h"
+#include "file.h"
 #include "../device/ide.h"
 #include "../kernel/debug.h"
 #include "super_block.h"
@@ -13,6 +14,7 @@ struct inode_position{
     uint32_t sec_lba;   //inode所在扇区号
     uint32_t off_size;  //该扇区中的字节偏移量
 };
+extern struct partition* cur_part;
 
 /*获得inode所在扇区和扇区内的偏移量*/
 static void inode_locate(struct partition* part, uint32_t inode_no, struct inode_position* inode_pos){
@@ -121,6 +123,70 @@ void inode_close(struct inode* inode){
     intr_set_status(old_status);
 }
 
+/*将硬盘分区part上的inode_no对应的inode清空*/
+void inode_delete(struct partition* part, uint32_t inode_no, void* io_buf){
+    ASSERT(inode_no < 4096);
+    struct inode_position inode_pos;
+    inode_locate(part, inode_no, &inode_pos);
+    ASSERT(inode_pos.sec_lba <= (part->start_lba + part->sec_cnt));
+
+    char* inode_buf = (char*)io_buf;
+    if(inode_pos.two_sec){  //跨扇区, 先读出来
+        ide_read(part->my_disk, inode_pos.sec_lba, inode_buf, 2);
+        memset((inode_buf + inode_pos.off_size), 0, sizeof(struct inode));
+        ide_write(part->my_disk, inode_pos.sec_lba, inode_buf, 2);
+    }else{
+        ide_read(part->my_disk, inode_pos.sec_lba, inode_buf, 1);
+        memset((inode_buf + inode_pos.off_size), 0, sizeof(struct inode));
+        ide_write(part->my_disk, inode_pos.sec_lba, inode_buf, 1);
+    }
+}
+
+/*税收inode的数据块和inode本身*/
+void inode_release(struct partition* part, uint32_t inode_no){
+    struct inode* inode_to_del = inode_open(part, inode_no);
+    ASSERT(inode_to_del->i_no == inode_no);
+
+    /*回收inode占用的所有块*/
+    uint8_t block_idx = 0, block_cnt = 12;
+    uint32_t block_bitmap_idx;
+    uint32_t all_block[140] = {0};
+    while(block_idx < 12){
+        all_block[block_idx] = inode_to_del->i_sectors[block_idx];
+        block_idx++;
+    }
+    /*若一级间接表存在, 将128各间接块读到all_blocks中, 并释放以及间接块表占用的扇区*/
+    if(inode_to_del->i_sectors[12] != 0){
+        ide_read(part->my_disk, inode_to_del->i_sectors[12], all_block + 12, 1);
+        block_cnt = 140;
+        block_bitmap_idx = inode_to_del->i_sectors[12] - part->sb->data_start_lba;
+        ASSERT(block_bitmap_idx > 0);
+        bitmap_set(&part->block_bitmap, block_bitmap_idx, 0);
+        bitmap_sync(cur_part,block_bitmap_idx,BLOCK_BITMAP);
+    }
+
+    block_idx = 0;
+    /*接下来逐个释放all_blocks中的块地址*/
+    while(block_idx < block_cnt){
+        if(all_block[block_idx] != 0){
+            block_bitmap_idx = 0;
+            block_bitmap_idx = all_block[block_idx] - part->sb->data_start_lba;
+            ASSERT(block_bitmap_idx > 0);
+            bitmap_set(&part->block_bitmap, block_bitmap_idx, 0);
+            bitmap_sync(cur_part,block_bitmap_idx,BLOCK_BITMAP);
+        }
+        block_idx++;
+    }
+    /*回收该inode节点所占用的inode*/
+    bitmap_set(&part->inode_bitmap, inode_no, 0);
+    bitmap_sync(cur_part, inode_no, INODE_BITMAP);
+
+    //以下仅作调试, 实际上可以不用清空
+    void* io_buf = sys_malloc(1024);
+    inode_delete(part, inode_no, io_buf);
+    sys_free(io_buf);
+    inode_close(inode_to_del);
+}
 /*初始化new_inode*/
 void inode_init(uint32_t inode_no, struct inode* new_inode){
     new_inode->i_no = inode_no;
@@ -134,3 +200,4 @@ void inode_init(uint32_t inode_no, struct inode* new_inode){
         new_inode->i_sectors[sec_idx++] = 0;
     }
 }
+

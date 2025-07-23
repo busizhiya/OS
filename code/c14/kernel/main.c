@@ -30,27 +30,7 @@ int main(void)
     //printf("printf: main's pid = %x\n",getpid());
     //printf("I am %s, my pid is %x%c",running_thread()->name,getpid(),'\n');
     
-    uint32_t fd = sys_open("/file1", O_RDWR);
-    char buf[64];
-    memset(buf, 0, 64);
-    
-    int read_bytes = sys_read(fd, buf, 18);
-    printf("1_ read %d bytes:\n%s\n",read_bytes, buf);
-
-    memset(buf, 0, 64);
-    read_bytes = sys_read(fd, buf, 6);
-    printf("2_ read %d bytes:\n%s\n",read_bytes, buf);
-
-    memset(buf, 0, 64);
-    read_bytes = sys_read(fd, buf, 6);
-    printf("3_ read %d bytes:\n%s\n",read_bytes, buf);
-
-    printf("------- SEEK_SET 0------- \n");
-    sys_lseek(fd, 0, SEEK_SET);
-    memset(buf, 0, 64);
-    read_bytes = sys_read(fd, buf, 24);
-    printf("4_ read %d bytes:\n%s\n",read_bytes, buf);
-    sys_close(fd);
+    printf("/file1 delete %s\n",sys_unlink("/file1") == 0 ? "done" : "failed" );
     //intr_enable();
     while(1);
     return 0;
