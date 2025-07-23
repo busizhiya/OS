@@ -581,6 +581,44 @@ int32_t sys_closedir(struct dir* dir){
     return ret;
 }
 
+/*读目录dir的一个目录项, 成功后返回其目录项地址, 到尾/出错返回NULL*/
+struct dir_entry* sys_readdir(struct dir* dir){
+    ASSERT(dir != NULL);
+    return dir_read(dir);
+}
+
+void sys_rewinddir(struct dir* dir){
+    dir->dir_pos = 0;
+}
+
+/*删除空目录, 成功返回0, 失败返回-1*/
+int32_t sys_rmdir(const char* pathname){
+    //先检查要删除的目录是否存在
+    struct path_search_record searched_record;
+    memset(&searched_record, 0, sizeof(struct path_search_record));
+    int inode_no = search_file(pathname, &searched_record);
+    ASSERT(inode_no != 0);
+    int retval = -1;
+    if(inode_no == -1){
+        printk("sys_rmdir:In %s, sub path %s not exist\n", pathname, searched_record.searched_path);
+    }else{
+        if(searched_record.file_type == FT_REGULAR){
+            printk("sys_rmdir: %s is a regular file\n, use sys_unlink() instead", pathname);
+        }else{
+            struct dir* dir = dir_open(cur_part, inode_no);
+            if(!dir_is_empty(dir)){
+                printk("sys_rmdir: dir %s is not empty, not allowed to delete a nonempty directory\n",pathname);
+            } else {
+                if(dir_remove(searched_record.parent_dir, dir) == 0){
+                    retval = 0;
+                }
+            }
+            dir_close(dir);
+        }
+    }
+    dir_close(searched_record.parent_dir);
+    return retval;
+}
 
 /*在磁盘上搜索文件系统, 若没有则格式化分区创建文件系统*/
 void filesys_init(){

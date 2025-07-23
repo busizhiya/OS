@@ -12,6 +12,8 @@
 #include "../lib/stdio.h"
 #include "../fs/fs.h"
 #include "../lib/string.h"
+#include "../fs/dir.h"
+
 void k_thread_a(void* arg);
 void k_thread_b(void* arg);
 void u_prog_a(void);
@@ -29,15 +31,55 @@ int main(void)
     //process_execute(u_prog_b,"user_prog_b");
     //printf("printf: main's pid = %x\n",getpid());
     //printf("I am %s, my pid is %x%c",running_thread()->name,getpid(),'\n');
-    struct dir* p_dir = sys_opendir("/dir1/subdir1");
+    struct dir* p_dir = sys_opendir("/dir1");
     if(p_dir){
-        printf("/dir1/subdir1 opened!\n");
+        printf("/dir1 opened!\n");
+        printf("content: \n");
+        char* type = NULL;
+        struct dir_entry* dir_e = NULL;
+        while((dir_e = sys_readdir(p_dir))){
+            if(dir_e->f_type == FT_REGULAR){
+                type = "regular";
+            } else {
+                type = "directory";
+            }
+            printf("\t%s %s\n", type, dir_e->filename);
+        }
+        printf("try to delete nonempty directory /dir1/subdir1\n");
+        if(sys_rmdir("/dir1/subdir1") == -1){
+            printf("sys_rmdir: /dir1/subdir1 delete failed\n");
+        }
+
+        printf("try to delete file /dir1/subdir1/file2\n");
+        if(sys_rmdir("/dir1/subdir1/file2") == -1){
+            printf("sys_rmdir: /dir1/subdir1 delete failed\n");
+        }
+        if(sys_unlink("/dir1/subdir1/file2") == 0){
+            printf("sys_unlink: /dir1/subdir1/file2 delete done!\n");
+        }
+
+        printf("try to delete empty directory /dir1/subdir1 again\n");
+        if(sys_rmdir("/dir1/subdir1") == 0){
+            printf("sys_rmdir: /dir1/subdir1 delete done\n");
+        }
+        printf("dir1 content after delete subdir1\n");
+        sys_rewinddir(p_dir);
+        while((dir_e = sys_readdir(p_dir))){
+            if(dir_e->f_type == FT_REGULAR){
+                type = "regular";
+            } else {
+                type = "directory";
+            }
+            printf("\t%s %s\n", type, dir_e->filename);
+        }
+        
         if(sys_closedir(p_dir)==0){
             printf("/dir1/subdir closed!\n");
         }
     }else{
         printf("/dir1/subdir1 open failed\n");
     }
+
     //intr_enable();
     while(1);
     return 0;
