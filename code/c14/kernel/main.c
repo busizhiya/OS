@@ -29,20 +29,14 @@ int main(void)
     //process_execute(u_prog_b,"user_prog_b");
     //printf("printf: main's pid = %x\n",getpid());
     //printf("I am %s, my pid is %x%c",running_thread()->name,getpid(),'\n');
-    sys_open("/file1",O_CREAT);
-    printf("/dir/subdir1 create %s!\n", sys_mkdir("/dir1/subdir1") == 0 ? "done" : "failed");
-    printf("/dir create %s!\n", sys_mkdir("/dir1") == 0 ? "done" : "failed");
-    printf("Now, /dir/subdir1 create %s!\n", sys_mkdir("/dir1/subdir1") == 0 ? "done" : "failed");
-    int fd = sys_open("/dir1/subdir1/file2",O_CREAT|O_RDWR);
-    if(fd != -1){
-        printf("/dir/subdir1/file2 created!\n");
-        sys_write(fd, "Catch me if you can!\n",21);
-        sys_lseek(fd, 0, SEEK_SET);
-        char buf[32];
-        memset(buf, 0, 32);
-        sys_read(fd, buf, 21);
-        printf("/dir/subdir1/file2 says: %s\n",buf);
-        sys_close(fd);
+    struct dir* p_dir = sys_opendir("/dir1/subdir1");
+    if(p_dir){
+        printf("/dir1/subdir1 opened!\n");
+        if(sys_closedir(p_dir)==0){
+            printf("/dir1/subdir closed!\n");
+        }
+    }else{
+        printf("/dir1/subdir1 open failed\n");
     }
     //intr_enable();
     while(1);
