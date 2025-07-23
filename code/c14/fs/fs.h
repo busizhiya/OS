@@ -33,5 +33,8 @@ static int search_file(const char* pathname, struct path_search_record* searched
 int32_t path_depth_cnt(char* pathname);
 static char* path_parse(char* pathname, char* name_store);
 int32_t sys_open(const char* pathname, uint8_t flag);
+int32_t sys_close(int32_t fd);
+int32_t sys_write(int32_t fd,const void* buf, uint32_t count);
+int32_t sys_read(int32_t fd, void* buf, uint32_t count);
 
 #endif

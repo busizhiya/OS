@@ -11,7 +11,7 @@
 #include "../lib/user/syscall.h"
 #include "../lib/stdio.h"
 #include "../fs/fs.h"
-
+#include "../lib/string.h"
 void k_thread_a(void* arg);
 void k_thread_b(void* arg);
 void u_prog_a(void);
@@ -29,8 +29,28 @@ int main(void)
     //process_execute(u_prog_b,"user_prog_b");
     //printf("printf: main's pid = %x\n",getpid());
     //printf("I am %s, my pid is %x%c",running_thread()->name,getpid(),'\n');
-    sys_open("/file1", O_CREAT);
+    
+    uint32_t fd = sys_open("/file1", O_RDWR);
+    char buf[64];
+    memset(buf, 0, 64);
+    
+    int read_bytes = sys_read(fd, buf, 18);
+    printf("1_ read %d bytes:\n%s\n",read_bytes, buf);
 
+    memset(buf, 0, 64);
+    read_bytes = sys_read(fd, buf, 6);
+    printf("2_ read %d bytes:\n%s\n",read_bytes, buf);
+
+    memset(buf, 0, 64);
+    read_bytes = sys_read(fd, buf, 6);
+    printf("3_ read %d bytes:\n%s\n",read_bytes, buf);
+
+    printf("------- close file1 and reopen------- \n");
+    sys_close(fd);
+    fd = sys_open("/file1", O_RDWR);
+    read_bytes = sys_read(fd, buf, 24);
+    printf("4_ read %d bytes:\n%s\n",read_bytes, buf);
+    sys_close(fd);
     //intr_enable();
     while(1);
     return 0;

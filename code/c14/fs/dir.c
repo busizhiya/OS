@@ -106,7 +106,7 @@ bool sync_dir_entry(struct dir* parent_dir, struct dir_entry* p_de, void* io_buf
     int32_t block_lba = -1;
     uint8_t block_idx = 0;
     uint32_t all_blocks[140] = {0};
-    while(block_idx<=12){
+    while(block_idx<12){
         all_blocks[block_idx] = dir_inode->i_sectors[block_idx];
         block_idx++;
     }
@@ -130,10 +130,11 @@ bool sync_dir_entry(struct dir* parent_dir, struct dir_entry* p_de, void* io_buf
             block_bitmap_idx = -1;
             if(block_idx<12){
                 dir_inode->i_sectors[block_idx] = all_blocks[block_idx] = block_lba;
-            }else if(block_idx == 12){  //第一级间接块
+            }else if(block_idx == 12 && dir_inode->i_sectors[12] == 0){  //第一级间接块
+                /*若未分配第一级间接块, 将第一次申请的块给第一级间接块, 同时再申请一块作为直接块*/ 
                 dir_inode->i_sectors[12] = block_lba;
                 block_lba = -1;
-                //尝试分配第零级间接块
+                //尝试分配第零级块
                 block_lba = block_bitmap_alloc(cur_part);
                 if(block_lba == -1){    //分配失败,回滚
                     block_bitmap_idx = dir_inode->i_sectors[12] - cur_part->sb->data_start_lba;
@@ -148,9 +149,11 @@ bool sync_dir_entry(struct dir* parent_dir, struct dir_entry* p_de, void* io_buf
                 all_blocks[12] = block_lba;
                 ide_write(cur_part->my_disk, dir_inode->i_sectors[12], all_blocks+12, 1);
             }else{//间接块
-                all_blocks[block_idx] = block_lba;
                 //此时i_sectors[12]是以及间接块扇区号, all_blocks+12就是那由第一级间接块支持的128个第零级间接块地址
                 //all_blocks[13~...]未赋值, 此处write会直接覆盖之前经第一级间接块分配的第零级间接块
+                /*** 修改*/
+                ide_read(cur_part->my_disk, dir_inode->i_sectors[12], all_blocks+12, 1);
+                all_blocks[block_idx] = block_lba;
                 ide_write(cur_part->my_disk, dir_inode->i_sectors[12], all_blocks+12, 1);
             }
             memset(io_buf, 0, 512);

@@ -9,6 +9,7 @@
 #include "../lib/kernel/stdio_kernel.h"
 #include "../lib/string.h"
 #include "../kernel/debug.h"
+#include "../device/console.h"
 
 extern uint8_t channel_cnt;
 extern struct ide_channel channels[2];
@@ -162,7 +163,6 @@ static void partition_format(struct partition* part){
     sys_free(buf);
 }
 
-
 /*将最上层路径名称解析出来,返回剩下的路径*/
 static char* path_parse(char* pathname, char* name_store){
     if(pathname[0] == '/'){//跳过根目录
@@ -303,11 +303,67 @@ int32_t sys_open(const char* pathname, uint8_t flag){
             printk("creating file\n");
             fd = file_create(searched_record.parent_dir,(strrchr(pathname, '/')+1),flag);
             dir_close(searched_record.parent_dir);
-            //其余为打开文件
+            break;
+        //其余为打开文件
+        default:
+            fd = file_open(inode_no, flag);
     }
     return fd;
 }
 
+/*将文件描述符转化为全局文件表的下标*/
+static uint32_t fd_local2global(uint32_t local_fd){
+    struct task_struct* cur = running_thread();
+    int32_t global_fd = cur->fd_table[local_fd];
+    ASSERT(global_fd >= 0 && global_fd < MAX_FILE_OPEN);
+    return (uint32_t)global_fd;
+}
+
+/*关闭文件描述符fd所指向的文件. 成功返回0, 失败返回-1*/
+int32_t sys_close(int32_t fd){
+    int32_t ret = -1;
+    if(fd > 2){
+        uint32_t _fd = fd_local2global(fd);
+        ret = file_close(&file_table[_fd]);
+        running_thread()->fd_table[fd] = -1;
+    }
+    return ret;
+}
+
+/*将buf中连续count个字节写入文件描述符fd, 成功则返回写入的字节数,失败返回-1*/
+int32_t sys_write(int32_t fd,const void* buf, uint32_t count){
+    if(fd < 0){
+        printk("sys_write: fd error");
+        return -1;
+    }
+    if(fd == stdout_no){
+        char tmp_buf[1024] = {0};
+        memcpy(tmp_buf, buf, count);
+        console_put_str(tmp_buf);
+        return count;
+    }
+    uint32_t _fd = fd_local2global(fd);
+    struct file* wr_file = &file_table[_fd];
+    if(wr_file->fd_flag & O_WRONLY || wr_file->fd_flag & O_RDWR){
+        uint32_t bytes_written = file_write(wr_file, buf, count);
+        return bytes_written;
+    }else{
+        console_put_str("sys_write: not allowd to write file without O_RDWR or O_WRONLY\n");
+        return -1;
+    }
+}
+
+/*从文件描述符指向的文件读取count个字节到buf, 若成功则返回读出的字节数, 到文件尾则返回-1*/
+int32_t sys_read(int32_t fd, void* buf, uint32_t count){
+    
+    if(fd < 0){
+        printk("sys_read: fd_error\n");
+        return -1;
+    }
+    ASSERT(buf != NULL);
+    uint32_t _fd = fd_local2global(fd);
+    return file_read(&file_table[_fd], buf, count);
+}
 /*在磁盘上搜索文件系统, 若没有则格式化分区创建文件系统*/
 void filesys_init(){
     uint8_t channel_no = 0, dev_no, part_idx = 0;

@@ -71,7 +71,7 @@ uint32_t printf(const char* format, ...){
     char buf[1024] = {0};
     vsprintf(buf,format,args);
     va_end(args);
-    return write(buf);
+    return write(1,buf,strlen(buf));
 }
 
 /*把字符串格式化写入buf中*/
