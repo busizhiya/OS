@@ -45,9 +45,9 @@ int main(void)
     read_bytes = sys_read(fd, buf, 6);
     printf("3_ read %d bytes:\n%s\n",read_bytes, buf);
 
-    printf("------- close file1 and reopen------- \n");
-    sys_close(fd);
-    fd = sys_open("/file1", O_RDWR);
+    printf("------- SEEK_SET 0------- \n");
+    sys_lseek(fd, 0, SEEK_SET);
+    memset(buf, 0, 64);
     read_bytes = sys_read(fd, buf, 24);
     printf("4_ read %d bytes:\n%s\n",read_bytes, buf);
     sys_close(fd);

@@ -21,6 +21,11 @@ enum oflags{    //按位定义
     O_RDWR = 2,     //读写
     O_CREAT = 4 //创建
 };
+enum whence{    //参照
+    SEEK_SET = 1,   //文件开头
+    SEEK_CUR,       //当前位置
+    SEEK_END        //文件末尾
+};
 struct path_search_record{
     char searched_path[MAX_PATH_LEN];   //查找过程中的父路径
     struct dir* parent_dir; //直接父目录
@@ -36,5 +41,6 @@ int32_t sys_open(const char* pathname, uint8_t flag);
 int32_t sys_close(int32_t fd);
 int32_t sys_write(int32_t fd,const void* buf, uint32_t count);
 int32_t sys_read(int32_t fd, void* buf, uint32_t count);
+int32_t sys_lseek(int32_t fd, int32_t offset, uint8_t whence);
 
 #endif

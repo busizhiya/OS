@@ -364,6 +364,35 @@ int32_t sys_read(int32_t fd, void* buf, uint32_t count){
     uint32_t _fd = fd_local2global(fd);
     return file_read(&file_table[_fd], buf, count);
 }
+
+/*重置用于文件读写操作的偏移指针, 成功时返回新的偏移量, 出错返回-1*/
+int32_t sys_lseek(int32_t fd, int32_t offset, uint8_t whence){
+    if(fd < 0){
+        printk("sys_lseek: fd error\n");
+        return -1;
+    }
+    ASSERT(whence > 0 && whence < 4);
+    uint32_t _fd = fd_local2global(fd);
+    struct file* pf = &file_table[_fd];
+    int32_t new_pos = 0;
+    int32_t file_size = (int32_t)pf->fd_inode->i_size;
+    switch(whence){
+        case SEEK_SET:
+            new_pos = offset;
+            break;
+        case SEEK_CUR:
+            new_pos = (int32_t)pf->fd_pos + offset;
+            break;
+        case SEEK_END:
+            new_pos = file_size + offset;   //此情况下, offset应该为负值
+            break;
+    }
+    if(new_pos < 0 || new_pos >= file_size)
+        return -1;
+    pf->fd_pos = new_pos;
+    return pf->fd_pos;
+}
+
 /*在磁盘上搜索文件系统, 若没有则格式化分区创建文件系统*/
 void filesys_init(){
     uint8_t channel_no = 0, dev_no, part_idx = 0;
@@ -415,3 +444,4 @@ void filesys_init(){
     while(fd_idx < MAX_FILE_OPEN)
         file_table[fd_idx++].fd_inode = NULL;
 }
+
