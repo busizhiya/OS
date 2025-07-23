@@ -72,6 +72,7 @@ struct task_struct{
     uint32_t* pgdir;
     struct virtual_addr userprog_vaddr;
     struct mem_block_desc u_block_descs[DESC_CNT];
+    uint32_t cwd_inode_nr;  //进程所在的工作目录inode编号
     uint32_t stack_magic;   //栈边界,判断溢出
 
 };
