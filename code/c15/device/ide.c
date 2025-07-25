@@ -227,13 +227,13 @@ static void identify_disk(struct disk* hd){
     char buf[64];
     uint8_t sn_start = 10*2, sn_len = 20, md_start = 27*2, md_len = 40;
     swap_pairs_bytes(&id_info[sn_start], buf, sn_len);
-    printk("    disk %s info:\n\t\tSN: %s\n", hd->name, buf);
+    //printk("    disk %s info:\n\t\tSN: %s\n", hd->name, buf);
     memset(buf, 0, sizeof(buf));
     swap_pairs_bytes(&id_info[md_start],buf, md_len);
-    printk("\t\tMODULE: %s\n", buf);
+    //printk("\t\tMODULE: %s\n", buf);
     uint32_t sectors = *(uint32_t*)&id_info[60*2];
-    printk("\t\tSECTORS: %d\n", sectors);
-    printk("\t\tCAPACITY: %dMB\n",sectors /2 / 1024);
+    //printk("\t\tSECTORS: %d\n", sectors);
+    //printk("\t\tCAPACITY: %dMB\n",sectors /2 / 1024);
 }
 /*扫描硬盘hd中地址为ext_lba的扇区中的所有分区*/
 static void partition_scan(struct disk* hd, uint32_t ext_lba){
@@ -328,7 +328,7 @@ void ide_init(){
         dev_no = 0;
         channel_no++;
     }
-    printk("\n  all partition info\n");
-    list_traversal(&partition_list, partition_info, (int)NULL);
+    //printk("\n  all partition info\n");
+    //list_traversal(&partition_list, partition_info, (int)NULL);
     printk("ide_init done\n");
 }   

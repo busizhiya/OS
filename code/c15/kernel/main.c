@@ -14,33 +14,32 @@
 #include "../lib/string.h"
 #include "../fs/dir.h"
 
+
 void k_thread_a(void* arg);
 void k_thread_b(void* arg);
 void u_prog_a(void);
 void u_prog_b(void);
 int test_var_a = 0, test_var_b = 0;
 
+
 int main(void)
 {
     put_str("\nKernel 2.0 by Q\n");
     init_all();
-    //ASSERT(1==2);
-    //thread_start("k_thread_a",31,k_thread_a,"argA ");
-    //thread_start("k_thread_b",31,k_thread_b,"argB ");
-    //process_execute(u_prog_a,"user_prog_a");
-    //process_execute(u_prog_b,"user_prog_b");
-    //printf("printf: main's pid = %x\n",getpid());
-    //printf("I am %s, my pid is %x%c",running_thread()->name,getpid(),'\n');
-    struct stat obj_stat;
-    sys_stat("/",&obj_stat);
-    printf("/'s info:\n\ti_no:%d\tsize:%d\tfiletype:%s\n",obj_stat.st_ino, obj_stat.st_size, obj_stat.st_filetype == 2 ? "directory" : "regular");
-    sys_stat("/dir1",&obj_stat);
-    printf("/dir1's info:\n\ti_no:%d\tsize:%d\tfiletype:%s\n",obj_stat.st_ino, obj_stat.st_size, obj_stat.st_filetype == 2 ? "directory" : "regular");
-    
-
-    //intr_enable();
+    intr_enable();
     while(1);
     return 0;
+}
+
+/*init进程*/
+void init(void){
+    uint32_t ret_pid = fork();
+    if(ret_pid){
+        printf("I'm a father, my pid is %d, child pid is %d\n",getpid(), ret_pid);
+    } else {
+       printf("I'm a child, my pid is %d, ret_pid is %d\n", getpid(), ret_pid);
+    }
+    while(1);
 }
 
 void k_thread_a(void* arg){

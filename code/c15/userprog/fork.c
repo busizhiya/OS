@@ -6,14 +6,17 @@
 #include "../kernel/memory.h"
 #include "../fs/file.h"
 #include "../kernel/interrupt.h"
-
+#include "../lib/stdio.h"
 
 extern void intr_exit(void);
 extern struct file file_table[MAX_FILE_OPEN];
+extern struct list thread_ready_list;//就绪队列
+extern struct list thread_all_list;//所有任务队列
 
 /*将父进程的pbc拷贝给子进程*/
 static int32_t copy_pcb_vaddrbitmap_stack0(struct task_struct* child_thread, struct task_struct* parent_thread){
     /*1. 复制pcb所在的整个页*/
+
     memcpy(child_thread, parent_thread, PG_SIZE);
     child_thread->pid = fork_pid();
     child_thread->elasped_ticks = 0;
@@ -22,9 +25,8 @@ static int32_t copy_pcb_vaddrbitmap_stack0(struct task_struct* child_thread, str
     child_thread->parent_pid = parent_thread->pid;
     child_thread->general_tag.prev = child_thread->general_tag.next = NULL;
     child_thread->all_list_tag.prev = child_thread->all_list_tag.next = NULL;
-    
     block_desc_init(child_thread->u_block_descs);
-    uint32_t bitmap_pg_cnt = DIV_ROUND_UP((0xc0000000 - USER_VADDR_START/PG_SIZE/8), PG_SIZE);
+    uint32_t bitmap_pg_cnt = DIV_ROUND_UP((0xc0000000 - USER_VADDR_START)/PG_SIZE/8, PG_SIZE);
     void* vaddr_btmp = get_kernel_pages(bitmap_pg_cnt);
     //将child_thread的位图换成自己的
     memcpy(vaddr_btmp, child_thread->userprog_vaddr.vaddr_bitmap.bits, bitmap_pg_cnt*PG_SIZE);
@@ -103,16 +105,12 @@ static int32_t copy_process(struct task_struct* child_thread, struct task_struct
     if(child_thread->pgdir == NULL){
         return -1;
     }
-
     //复制父进程体机用户栈给子进程
     copy_body_stack3(child_thread, parent_thread, buf_page);
-
     /*构建子进程thread_stack和修改返回值pid*/
     build_child_stack(child_thread);
-
     /*更新文件inode的打开数*/
     update_inode_open_cnts(child_thread);
-
     mfree_page(PF_KERNEL, buf_page, 1);
     return 0;
 }
@@ -122,10 +120,14 @@ pid_t sys_fork(void){
     struct task_struct* parent_thread = running_thread();
     struct task_struct* child_thread = get_kernel_pages(1);
     if(child_thread == NULL)
-        return 0-1;
+        return -1;
     ASSERT(INTR_OFF == intr_get_status() && parent_thread->pgdir != NULL);
     if(copy_process(child_thread, parent_thread) == -1){
         return -1;
     }
-    aq
+    ASSERT(!elem_find(&thread_ready_list,&child_thread->general_tag));
+    list_append(&thread_ready_list,&child_thread->general_tag);
+    ASSERT(!elem_find(&thread_all_list,&child_thread->all_list_tag));
+    list_append(&thread_all_list,&child_thread->all_list_tag);
+    return child_thread->pid;
 }

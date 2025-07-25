@@ -20,6 +20,7 @@ struct list thread_all_list;//所有任务队列
 static struct list_elem* thread_tag;    //保存队列中的线程节点
 struct lock pid_lock;
 extern void switch_to(struct task_struct* cur, struct task_struct* next);
+extern void init(void);
 //返回PCB页起始地址
 struct task_struct* running_thread(){
     uint32_t esp;
@@ -198,6 +199,7 @@ void thread_init(void){
     list_init(&thread_all_list);
     lock_init(&pid_lock);
     //为当前main函数创建线程
+    process_execute(init, "init");
     make_main_thread();
     idle_thread = thread_start("idle", 10, idle, NULL);
     put_str("thread_init done\n");
