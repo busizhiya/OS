@@ -10,12 +10,14 @@
 #include "../lib/string.h"
 #include "../kernel/debug.h"
 #include "../device/console.h"
+#include "../device/ioqueue.h"
 
 extern uint8_t channel_cnt;
 extern struct ide_channel channels[2];
 extern struct list partition_list;
 extern struct dir root_dir;
 extern struct file file_table[MAX_FILE_OPEN];
+extern struct ioqueue kbd_buf;
 
 struct partition* cur_part;//默认情况下操作的分区
 
@@ -355,14 +357,25 @@ int32_t sys_write(int32_t fd,const void* buf, uint32_t count){
 
 /*从文件描述符指向的文件读取count个字节到buf, 若成功则返回读出的字节数, 到文件尾则返回-1*/
 int32_t sys_read(int32_t fd, void* buf, uint32_t count){
-    
+    ASSERT(buf != NULL);
+    int32_t ret = -1;
     if(fd < 0){
         printk("sys_read: fd_error\n");
         return -1;
+    } else if(fd == stdin_no){
+        char* buffer = buf;
+        uint32_t bytes_read = 0;
+        while(bytes_read < count){
+            *buffer = ioq_getchar(&kbd_buf);
+            bytes_read++;
+            buffer++;
+        }
+        ret = (bytes_read == 0 ? -1 : (int32_t)bytes_read);
+    }else{
+        uint32_t _fd = fd_local2global(fd);
+        ret = file_read(&file_table[_fd], buf, count);
     }
-    ASSERT(buf != NULL);
-    uint32_t _fd = fd_local2global(fd);
-    return file_read(&file_table[_fd], buf, count);
+    return ret;
 }
 
 /*重置用于文件读写操作的偏移指针, 成功时返回新的偏移量, 出错返回-1*/
