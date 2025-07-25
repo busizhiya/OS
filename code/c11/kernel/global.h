@@ -85,6 +85,6 @@ struct gdt_desc{
 #define EFLAGS_IOPL_0 (0<<12)
 #define EFLAGS_IOPL_3 (3<<12)
 #define DIV_ROUND_UP(X, STEP) ((X+STEP-1)/(STEP))
-#define USER_STACK3_VADDR (0xc0000000 - 0x1000)
+
 #define PG_SIZE 4096
 #endif

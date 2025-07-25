@@ -57,7 +57,7 @@ void init_thread(struct task_struct* pthread, char* name, int prio){
     }
     pthread->priority = prio;
     pthread->ticks = prio;
-    pthread->elasped_ticks = 0;
+    pthread->elapsed_ticks = 0;
     pthread->pgdir = NULL;
     pthread->self_kstack = (uint32_t*)((uint32_t)pthread + PG_SIZE);
     pthread->stack_magic = 0x20070515;
@@ -81,7 +81,7 @@ struct task_struct* thread_start(char* name, int prio, thread_func function, voi
 static void make_main_thread(void){
     /*main线程的pcb已经预留在0xc009e000, 不需要额外申请一页内存*/
     main_thread = running_thread();
-    init_thread(main_thread, "main", 62);
+    init_thread(main_thread, "main", 3);
     ASSERT(!elem_find(&thread_all_list, &main_thread->all_list_tag));
     list_append(&thread_all_list,&main_thread->all_list_tag);
 }
@@ -116,7 +116,8 @@ void schedule(){
     process_activate(next);
     D_put_str("Schedule: ready to enter switch_to\n");
     D_put_char('\n');
-    switch_to(cur, next);
+    switch_to(cur, next);   //0xc0004417, switch_to: 0xc0004000
+   
 }
 void thread_init(void){
     put_str("thread_init start\n");

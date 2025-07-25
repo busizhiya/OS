@@ -93,6 +93,8 @@ void mem_init(){
     mem_pool_init(mem_bytes_total);
     put_str("mem_init done\n");
 }
+
+
 /*在pf表示的虚拟地址池中申请pg_cnt个虚拟页*/
 static void* vaddr_get(enum pool_flags pf,uint32_t pg_cnt){
     int32_t vaddr_start = 0, bit_idx_start = -1;
@@ -157,6 +159,7 @@ static void page_table_add(void* _vaddr, void* _page_phyaddr){
     // D_put_str(" pte=");
     // D_put_int((uint32_t)pte);
     // D_put_char('\n');
+    
     if(*pde & 0x00000001){//页目录项存在
         //新添加的页表项不应该存在
         ASSERT(!(*pte & 0x00000001));
@@ -175,6 +178,7 @@ static void page_table_add(void* _vaddr, void* _page_phyaddr){
         ASSERT(!(*pte & 0x00000001));
         *pte = (page_phyaddr | PG_US_U | PG_RW_W | PG_P_1);
     }
+    
 }
 
 /*从pf对应的虚拟地址池中分配pg_cnt个页空间, 成功则返回起始虚拟地址, 失败返回NULL*/
@@ -199,7 +203,7 @@ void* malloc_page(enum pool_flags pf, uint32_t pg_cnt){
     return vaddr_start;
 }
 
-/*从内核物理地址池中申请pg_cnt页内存*/
+/*从内核物理地址池中申请pg_cnt页内存,返回内核虚拟地址池的虚拟地址*/
 void* get_kernel_pages(uint32_t pg_cnt){
     void* vaddr = malloc_page(PF_KERNEL, pg_cnt);
     if(vaddr != NULL)   //申请成功, 清空内存旧内容
@@ -224,6 +228,7 @@ void* get_user_pages(uint32_t pg_cnt){
 
 /* 将地址vaddr与pf池中的物理地址关联, 仅支持一页空间分配*/
 void* get_a_page(enum pool_flags pf, uint32_t vaddr){
+    
     struct pool* mem_pool = pf & PF_KERNEL ? &kernel_pool : &user_pool;
     lock_acquire(&mem_pool->lock);
 
@@ -234,7 +239,6 @@ void* get_a_page(enum pool_flags pf, uint32_t vaddr){
         bit_idx = (vaddr - cur->userprog_vaddr.vaddr_start) / PG_SIZE;
         ASSERT(bit_idx > 0);
         bitmap_set(&cur->userprog_vaddr.vaddr_bitmap, bit_idx, 1);
-
         /*如果是内核线程申请内核内存, 就修改kernel_vaddr*/
     } else if(cur->pgdir == NULL && pf == PF_KERNEL){
         bit_idx = (vaddr - kernel_vaddr.vaddr_start) / PG_SIZE;
@@ -243,12 +247,18 @@ void* get_a_page(enum pool_flags pf, uint32_t vaddr){
     }else{
         PANIC("get_a_page: kernel allocates userspace or user allocates kernel space by get_a_page are not allowed");
     }
-    void* page_phyaddr = palloc(mem_pool);
+    void* page_phyaddr = palloc(mem_pool);  //00000000c0003217
     if(page_phyaddr == NULL)
         return NULL;
-    page_table_add((void*)vaddr, page_phyaddr);
-    lock_release(&mem_pool->lock);
+    /*问题定位!!!*/
+
+    
+    page_table_add((void*)vaddr, page_phyaddr); //00000000c0003239
+    
+    lock_release(&mem_pool->lock);  //00000000c000324b
+    
     return (void*)vaddr;
+   
 }
 
 /*得到虚拟地址映射到的物理地址*/

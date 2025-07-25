@@ -20,10 +20,10 @@ int main(void)
     put_str("\nKernel 2.0 by Q\n");
     init_all();
     //ASSERT(1==2);
-    //thread_start("k_thread_a",31,k_thread_a,"argA ");
-    //thread_start("k_thread_b",31,k_thread_b,"argB ");
+    thread_start("k_thread_a",31,k_thread_a,"argA ");
+    thread_start("k_thread_b",31,k_thread_b,"argB ");
     process_execute(u_prog_a,"user_prog_a");
-    //process_execute(u_prog_b,"user_prog_b");
+    process_execute(u_prog_b,"user_prog_b");
 
     intr_enable();
     while(1);
@@ -33,22 +33,22 @@ int main(void)
 void k_thread_a(void* arg){
     char* para = arg;
     while(1){
-        //console_put_str("v_a:0x");
-        //console_put_int(test_var_a);
+        //console_put_str("K_thread_a~\n");
+        console_put_str("v_a:0x");
+        console_put_int(test_var_a);
     }
 }
 void k_thread_b(void* arg){
     char* para = arg;
     while(1){
-        //console_put_str("v_b:0x"); 
-        //console_put_int(test_var_b);
+        console_put_str("v_b:0x");
+        console_put_int(test_var_b);
     }
 }
 
 void u_prog_a(void){
     while(1){
-        D_put_str("u_prog_a running\t");
-        //test_var_a++;
+        test_var_a++;
     }
 }
 

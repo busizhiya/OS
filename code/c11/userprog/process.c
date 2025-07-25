@@ -13,8 +13,9 @@
 extern void intr_exit(void);
 extern struct list thread_ready_list;//就绪队列
 extern struct list thread_all_list;//所有任务队列
+
 /*构建用户进程初始上下文信息*/
-void start_process(void* filename_){
+void start_process(void* filename_){    //0x00003424
     D_put_str("start process");
     void* function = filename_;
     struct task_struct* cur = running_thread();
@@ -34,11 +35,16 @@ void start_process(void* filename_){
     
     proc_stack->cs = SELECTOR_U_CODE;
     proc_stack->eflags = (EFLAGS_IOPL_0 | EFLAGS_MBS | EFLAGS_IF_1);
+    /*定位问题!!*/
+    intr_disable();
+    
     proc_stack->esp = (void*)((uint32_t)get_a_page(PF_USER, \
-    USER_STACK3_VADDR) + PG_SIZE);
+    USER_STACK3_VADDR) + PG_SIZE);      //00000000c000350f
+    
     proc_stack->ss = SELECTOR_U_DATA;
-    asm volatile ("movl %0, %%esp; jmp intr_exit" :: "g"(proc_stack) : "memory");
-
+     
+    asm volatile ("movl %0, %%esp; jmp intr_exit" :: "g"(proc_stack) : "memory");   //00000000c0003536
+    
 }
 
 /*激活页表*/
@@ -78,13 +84,15 @@ void process_activate(struct task_struct* p_thread){
     //如果是用户态进程,需要更新esp0
     if(p_thread->pgdir){
         D_put_str("Ready to enter update_ess_esp\n");
-        update_ess_esp(p_thread);
+        update_tss_esp(p_thread);
         D_put_str("Finished update_ess_esp\n");
     }
     D_put_str("At the end of process_activate\n");
+    
 }
-/*创建用户进程自己的页目录表, 返回页目录表的虚拟地址*/
+/*创建用户进程自己的页目录表, 将当前页表表示内核的pde复制, 返回页目录表的虚拟地址*/
 uint32_t* create_page_dir(void){
+    /*用户程序的页表在内核空间中申请*/
     uint32_t* page_dir_vaddr = get_kernel_pages(1);
     if(page_dir_vaddr==NULL){
         console_put_str("create_page_dir: get_kernel_page failed");
@@ -102,12 +110,12 @@ uint32_t* create_page_dir(void){
     // 1024);
     
     /*更新页目录地址*/
-    uint32_t new_page_dir_phyaddr = addr_v2p((uint32_t)page_dir_vaddr);
+    uint32_t new_page_dir_phy_addr = addr_v2p((uint32_t)page_dir_vaddr);
     D_put_str("new_page_dir_phyaddr = ");
-    D_put_int(new_page_dir_phyaddr);
+    D_put_int(new_page_dir_phy_addr);
     D_put_char('\n');
     /*更新页目录表最后一项为页目录表地址*/
-    page_dir_vaddr[1023] = new_page_dir_phyaddr | PG_US_U | PG_RW_W | PG_P_1;
+    page_dir_vaddr[1023] = new_page_dir_phy_addr | PG_US_U | PG_RW_W | PG_P_1;
     return page_dir_vaddr;
 }
 
@@ -123,7 +131,7 @@ void create_user_vaddr_bitmap(struct task_struct* user_prog){
     bitmap_init(&user_prog->userprog_vaddr.vaddr_bitmap);
 }
 
-
+/*创建用户进程*/
 void process_execute(void* filename, char* name){
     D_put_str("process_execute start\n");
     struct task_struct* thread = get_kernel_pages(1);

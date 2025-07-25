@@ -60,7 +60,8 @@ static void make_idt_desc(struct gate_desc* p_gdesc,uint8_t attr,intr_handler fu
     p_gdesc->selector = SELECTOR_K_CODE;
     p_gdesc->dcount = 0;    //固定值
     p_gdesc->attribute = attr;
-    p_gdesc->func_offset_high_word = (uint32_t)function & 0xFFFF0000;
+    //发现错误❌!!!
+    p_gdesc->func_offset_high_word = ((uint32_t)function & 0xFFFF0000)>>16;
 }
 
 /*注册安装中断处理程序*/

@@ -60,6 +60,8 @@
         "__locale": "c",
         "ide.h": "c",
         "fs.h": "c",
-        "dir.h": "c"
+        "dir.h": "c",
+        "file.h": "c",
+        "super_block.h": "c"
     }
 }

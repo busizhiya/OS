@@ -36,7 +36,8 @@ struct tss{
 };
 static struct tss tss;
 
-void update_ess_esp(struct task_struct* pthread){
+/*更新tss中esp0字段的值为pthread的0级栈*/
+void update_tss_esp(struct task_struct* pthread){
     tss.esp0 = (uint32_t*) ((uint32_t)pthread + PG_SIZE);
 }
 
@@ -83,7 +84,7 @@ void tss_init(){
     GDT_ATTR_HIGH);
 
     uint64_t gdt_operand = \
-    ((8*7-1) | (uint64_t)(uint32_t)0xc0000900 << 16);
+    ((8*7-1) | ((uint64_t)(uint32_t)0xc0000900 << 16));
     
     asm volatile ("lgdt %0" : : "m"(gdt_operand));
     asm volatile ("ltr %w0" : : "r"(SELECTOR_TSS));

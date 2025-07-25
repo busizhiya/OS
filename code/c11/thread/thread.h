@@ -57,12 +57,12 @@ struct thread_stack{
 };
 //PCB页内数据
 struct task_struct{
-    uint32_t* self_kstack;  //指向栈顶
+    uint32_t* self_kstack;  //内核线程用自己的内核栈
     enum task_status status;
     uint8_t priority;
     char name[16];
     uint8_t ticks;
-    uint32_t elasped_ticks;
+    uint32_t elapsed_ticks;
     struct list_elem general_tag;
     struct list_elem all_list_tag;
     uint32_t* pgdir;
