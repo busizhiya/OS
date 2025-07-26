@@ -57,3 +57,8 @@ for i in $(ls -l *.c | awk -F ' ' '{print $9}' | awk -F '.' '{print $1}')
 do
         x86_64-elf-gcc -o ../build/$i.o $i.c -c -m32 -ffreestanding -nostdlib -fno-builtin
 done
+cd ../shell
+for i in $(ls -l *.c | awk -F ' ' '{print $9}' | awk -F '.' '{print $1}')
+do
+        x86_64-elf-gcc -o ../build/$i.o $i.c -c -m32 -ffreestanding -nostdlib -fno-builtin
+done

@@ -32,7 +32,7 @@
 #define CMD_READ_SECTOR     0x20
 #define CMD_WRITE_SECTOR    0x30
 
-#define max_lba ((80*1024*2) - 1)
+#define max_lba ((80*1024*1024/512) - 1)
 
 uint8_t channel_cnt;
 struct ide_channel channels[2];
@@ -119,6 +119,7 @@ static bool busy_wait(struct disk* hd){
 
 /*从硬盘中读取sec_cnt个扇区到buf*/
 void ide_read(struct disk* hd, uint32_t lba, void* buf, uint32_t sec_cnt){
+    //printf("lba = %d\n",lba);
     ASSERT(lba <= max_lba);
     ASSERT(sec_cnt > 0);
     lock_acquire(&hd->my_channel->lock);
@@ -202,7 +203,7 @@ void intr_hd_handler(uint8_t irq_no){
 
 
 
-/*将dst中len个祥林字节交换位置后存入buf*/
+/*将dst中len个相邻字节交换位置后存入buf*/
 static void swap_pairs_bytes(const char* dst, char* buf, uint32_t len){
     uint8_t idx;
     for(idx = 0; idx<len; idx += 2){
@@ -328,7 +329,7 @@ void ide_init(){
         dev_no = 0;
         channel_no++;
     }
-    //printk("\n  all partition info\n");
-    //list_traversal(&partition_list, partition_info, (int)NULL);
+    printk("\n  all partition info\n");
+    list_traversal(&partition_list, partition_info, (int)NULL);
     printk("ide_init done\n");
 }   

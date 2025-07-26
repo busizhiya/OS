@@ -65,7 +65,7 @@ struct task_struct{
     uint8_t priority;
     char name[16];
     uint8_t ticks;
-    uint32_t elasped_ticks;
+    uint32_t elapsed_ticks;
     int32_t fd_table[MAX_FILES_PER_PROC];
     struct list_elem general_tag;
     struct list_elem all_list_tag;

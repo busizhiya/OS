@@ -42,7 +42,7 @@ void filesys_init();
 static bool mount_partition(struct list_elem* pelem, int arg);
 static int search_file(const char* pathname, struct path_search_record* searched_record);
 int32_t path_depth_cnt(char* pathname);
-static char* path_parse(char* pathname, char* name_store);
+char* path_parse(char* pathname, char* name_store);
 int32_t sys_open(const char* pathname, uint8_t flag);
 int32_t sys_close(int32_t fd);
 int32_t sys_write(int32_t fd,const void* buf, uint32_t count);

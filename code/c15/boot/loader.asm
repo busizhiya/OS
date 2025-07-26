@@ -269,7 +269,7 @@ mem_cpy:
 
 read_disk_m_32:
     mov esi,eax ;备份eax
-    mov edi,ecx   ;备份cx
+    mov di,cx   ;备份cx
 ;读写硬盘
 ;Step 1:设置要读取的扇区数
     ;0x1f2 Sector Count
@@ -328,7 +328,7 @@ read_disk_m_32:
     mov ax,di
     mov dx,256
     mul dx  ; 计算ax*dx,结果的高16位在dx,低16位在ax
-    mov ecx,eax   ;执行次数=di(扇区数)*512/2
+    mov cx,ax   ;执行次数=di(扇区数)*512/2
     mov dx,0x1f0
     
     .go_on_read:

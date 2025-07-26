@@ -13,20 +13,17 @@
 #include "../fs/fs.h"
 #include "../lib/string.h"
 #include "../fs/dir.h"
-
-
-void k_thread_a(void* arg);
-void k_thread_b(void* arg);
-void u_prog_a(void);
-void u_prog_b(void);
-int test_var_a = 0, test_var_b = 0;
+#include "../shell/shell.h"
 
 
 int main(void)
 {
     put_str("\nKernel 2.0 by Q\n");
     init_all();
+    printf("Finish init_all\n");
     intr_enable();
+    clear();
+    print_prompt();
     while(1);
     return 0;
 }
@@ -35,47 +32,9 @@ int main(void)
 void init(void){
     uint32_t ret_pid = fork();
     if(ret_pid){
-        printf("I'm a father, my pid is %d, child pid is %d\n",getpid(), ret_pid);
+        while(1);
     } else {
-       printf("I'm a child, my pid is %d, ret_pid is %d\n", getpid(), ret_pid);
+        my_shell();
     }
     while(1);
-}
-
-void k_thread_a(void* arg){
-    char* para = arg;
-    void* ptr1 = malloc(1024);
-    void* ptr2 = malloc(1024);
-    printf("k_thread_a: ptr1, addr is 0x%x\n",(uint32_t)ptr1);
-    printf("k_thread_a: ptr2, addr is 0x%x\n",(uint32_t)ptr2);
-    free(ptr1);
-    void* ptr3 = malloc(1024);
-    printf("k_thread_a: ptr3, addr is 0x%x\n",(uint32_t)ptr3);
-    void* ptr4 = malloc(1024);
-    printf("k_thread_a: ptr4, addr is 0x%x\n",(uint32_t)ptr4);
-    while(1){
-        //console_put_str("v_a:0x");
-        //console_put_int(test_var_a);
-    }
-}
-void k_thread_b(void* arg){
-    char* para = arg;
-    printf("k_thread_a: sys_malloc(63), addr is 0x%x\n",(uint32_t)sys_malloc(63));
-    while(1){
-        //console_put_str("v_b:0x"); 
-        //console_put_int(test_var_b);
-    }
-}
-
-void u_prog_a(void){
-    while(1){
-        D_put_str("u_prog_a running\t");
-        //test_var_a++;
-    }
-}
-
-void u_prog_b(void){
-    while(1){
-        test_var_b++;
-    }
 }

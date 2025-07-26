@@ -166,7 +166,7 @@ static void partition_format(struct partition* part){
 }
 
 /*将最上层路径名称解析出来,返回剩下的路径*/
-static char* path_parse(char* pathname, char* name_store){
+char* path_parse(char* pathname, char* name_store){
     if(pathname[0] == '/'){//跳过根目录
         while(*(++pathname)=='/');
     }
@@ -776,6 +776,7 @@ int32_t sys_stat(const char* path, struct stat* buf){
 
 /*在磁盘上搜索文件系统, 若没有则格式化分区创建文件系统*/
 void filesys_init(){
+    printk("filesys_init start\n");
     uint8_t channel_no = 0, dev_no, part_idx = 0;
     /*sb_buf用来存储从硬盘上读入的超级块*/
     struct super_block* sb_buf = (struct super_block*)sys_malloc(SECTOR_SIZE);
@@ -792,13 +793,14 @@ void filesys_init(){
             }
             struct disk* hd = &channels[channel_no].devices[dev_no];
             struct partition* part = hd->prim_parts;
-            while(part_idx < 12){   //4个主分区+8个逻辑分区
+            while(part_idx < 9){   //4个主分区+8个逻辑分区
                 if(part_idx==4){ //开始处理逻辑分区
                     part = hd->logic_parts;
                 }
                 if(part->sec_cnt != 0){ //如果分区存在
                     memset(sb_buf, 0, SECTOR_SIZE);
                     //读入超级块
+                    //printk("part_idx = %d, part_sec = %d\n", part_idx, part->sec_cnt);
                     ide_read(hd, part->start_lba+1, sb_buf, 1);
                     if(sb_buf->magic == 0x20070329){
                         printk("%s has filesystem\n", part->name);
@@ -824,5 +826,6 @@ void filesys_init(){
     uint32_t fd_idx = 0;
     while(fd_idx < MAX_FILE_OPEN)
         file_table[fd_idx++].fd_inode = NULL;
+    printk("filesys_init done\n");
 }
 

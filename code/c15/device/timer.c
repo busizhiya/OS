@@ -21,7 +21,7 @@ static void intr_timer_handler(void){
     
     struct task_struct* cur_thread = running_thread();
     ASSERT(cur_thread->stack_magic == 0x20070515);  //检查栈溢出
-    cur_thread->elasped_ticks++;
+    cur_thread->elapsed_ticks++;
     ticks++;
     if(cur_thread->ticks == 0)
         schedule(); //当前线程时间片用完, 需要调度新的线程

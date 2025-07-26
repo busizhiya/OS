@@ -177,6 +177,10 @@ static void intr_keyboard_handler(void){
         uint8_t index = (scancode &= 0x00ff);
         char cur_char = keymap[index][shift];
         if(cur_char){//非0
+            //快捷键ctrl+l & ctrl + u
+            if((ctrl_down_last && cur_char == 'l') || (ctrl_down_last && cur_char == 'u')){
+                cur_char -= 'a';    
+            }
             if(!ioq_full(&kbd_buf)){
                 //console_put_char(cur_char);
                 ioq_putchar(&kbd_buf, cur_char);
