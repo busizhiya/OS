@@ -9,6 +9,12 @@
         "debug.h": "c",
         "stdio.h": "c",
         "timer.h": "c",
-        "wait_exit.h": "c"
+        "wait_exit.h": "c",
+        "fs.h": "c",
+        "queue": "c",
+        "stack": "c",
+        "random": "c",
+        "syscall.h": "c",
+        "pipe.h": "c"
     }
 }

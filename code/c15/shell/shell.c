@@ -151,7 +151,6 @@ void my_shell(void){
                 if(child_pid == -1){
                     PANIC("myshell: no child\n");
                 }
-                printf("child_pid %d, it's status: %d\n", child_pid, status);
             } else {
                 make_clear_abs_path(argv[0], final_path);
                 argv[0] = final_path;
@@ -162,7 +161,7 @@ void my_shell(void){
                 }else {
                     execv(argv[0], (const char**)argv);
                 }
-                while(1);
+                exit(0);
             }
         }
         int32_t arg_idx = 0;

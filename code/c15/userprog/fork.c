@@ -7,9 +7,9 @@
 #include "../fs/file.h"
 #include "../kernel/interrupt.h"
 #include "../lib/stdio.h"
+#include "../shell/pipe.h"
 
 extern void intr_exit(void);
-extern struct file file_table[MAX_FILE_OPEN];
 extern struct list thread_ready_list;//就绪队列
 extern struct list thread_all_list;//所有任务队列
 
@@ -32,7 +32,6 @@ static int32_t copy_pcb_vaddrbitmap_stack0(struct task_struct* child_thread, str
     memcpy(vaddr_btmp, child_thread->userprog_vaddr.vaddr_bitmap.bits, bitmap_pg_cnt*PG_SIZE);
     child_thread->userprog_vaddr.vaddr_bitmap.bits = vaddr_btmp;
     ASSERT(strlen(child_thread->name) < 11);    //避免越界
-    strcat(child_thread->name,"_fork");
     return 0;
 }
 /*复制子进程的进程体(代码和数据)和用户栈*/
@@ -79,12 +78,16 @@ static int32_t build_child_stack(struct task_struct* child_thread){
 
 /*更新inode打开数*/
 static void update_inode_open_cnts(struct task_struct* thread){
-    int32_t local_fd = 3, global_fd = 0;
+    int32_t local_fd = 3, global_fd = -1;
     while(local_fd < MAX_FILES_PER_PROC){
         global_fd = thread->fd_table[local_fd];
         ASSERT(global_fd < MAX_FILE_OPEN);
         if(global_fd != -1){
-            file_table[global_fd].fd_inode->i_open_cnt++;
+            if(is_pipe(local_fd)){
+                file_table[global_fd].fd_pos++;
+            } else {
+                file_table[global_fd].fd_inode->i_open_cnt++;
+            }
         }
         local_fd++;
     }

@@ -19,11 +19,8 @@ struct ioqueue{
 
 void ioq_putchar(struct ioqueue* ioq, char byte);
 char ioq_getchar(struct ioqueue* ioq);
-static void wakeup(struct task_struct** waiter);
-static void ioq_wait(struct task_struct** waiter);
 bool ioq_empty(struct ioqueue* ioq);
 bool ioq_full(struct ioqueue* ioq);
 void ioqueue_init(struct ioqueue* ioq);
-static int32_t next_pos(int32_t pos);
-
+uint32_t ioq_length(struct ioqueue* ioq);
 #endif

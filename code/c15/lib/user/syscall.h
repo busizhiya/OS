@@ -28,7 +28,8 @@ enum SYSCALL_NR{
     SYS_PS,
     SYS_EXECV,
     SYS_WAIT,
-    SYS_EXIT
+    SYS_EXIT,
+    SYS_PIPE
 };
 void syscall_init(void);
 
@@ -57,4 +58,5 @@ void ps(void);
 int32_t execv(const char* path, const char* argv[]);
 void exit(int32_t status);
 pid_t wait(int32_t* status);
+int32_t pipe(int32_t pipefd[2]);
 #endif

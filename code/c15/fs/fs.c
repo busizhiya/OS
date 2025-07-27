@@ -12,12 +12,12 @@
 #include "../device/console.h"
 #include "../device/ioqueue.h"
 #include "../lib/stdio.h"
+#include "../shell/pipe.h"
 
 extern uint8_t channel_cnt;
 extern struct ide_channel channels[2];
 extern struct list partition_list;
 extern struct dir root_dir;
-extern struct file file_table[MAX_FILE_OPEN];
 extern struct ioqueue kbd_buf;
 
 struct partition* cur_part;//默认情况下操作的分区
@@ -315,7 +315,7 @@ int32_t sys_open(const char* pathname, uint8_t flag){
 }
 
 /*将文件描述符转化为全局文件表的下标*/
-static uint32_t fd_local2global(uint32_t local_fd){
+uint32_t fd_local2global(uint32_t local_fd){
     struct task_struct* cur = running_thread();
     int32_t global_fd = cur->fd_table[local_fd];
     ASSERT(global_fd >= 0 && global_fd < MAX_FILE_OPEN);
@@ -326,8 +326,16 @@ static uint32_t fd_local2global(uint32_t local_fd){
 int32_t sys_close(int32_t fd){
     int32_t ret = -1;
     if(fd > 2){
-        uint32_t _fd = fd_local2global(fd);
-        ret = file_close(&file_table[_fd]);
+        uint32_t global_fd = fd_local2global(fd);
+        if(is_pipe(fd)){
+            if(--file_table[global_fd].fd_pos == 0){    //若两个都关闭
+                mfree_page(PF_KERNEL, file_table[global_fd].fd_inode, 1);
+                file_table[global_fd].fd_inode = NULL;
+            }
+            ret = 0;
+        }else {
+            ret = file_close(&file_table[global_fd]);
+        } 
         running_thread()->fd_table[fd] = -1;
     }
     return ret;
@@ -340,41 +348,55 @@ int32_t sys_write(int32_t fd,const void* buf, uint32_t count){
         return -1;
     }
     if(fd == stdout_no){
-        char tmp_buf[1024] = {0};
-        memcpy(tmp_buf, buf, count);
-        console_put_str(tmp_buf);
-        return count;
+        if(is_pipe(fd)){
+            return pipe_write(fd, buf, count);
+        }else {
+            char tmp_buf[1024] = {0};
+            memcpy(tmp_buf, buf, count);
+            console_put_str(tmp_buf);
+            return count;
+        }
+    } else if(is_pipe(fd)){
+        return pipe_write(fd, buf, count);
+    } else {
+        uint32_t _fd = fd_local2global(fd);
+        struct file* wr_file = &file_table[_fd];
+        if(wr_file->fd_flag & O_WRONLY || wr_file->fd_flag & O_RDWR){
+            uint32_t bytes_written = file_write(wr_file, buf, count);
+            return bytes_written;
+        }else{
+            console_put_str("sys_write: not allowd to write file without O_RDWR or O_WRONLY\n");
+            return -1;
+        }
     }
-    uint32_t _fd = fd_local2global(fd);
-    struct file* wr_file = &file_table[_fd];
-    if(wr_file->fd_flag & O_WRONLY || wr_file->fd_flag & O_RDWR){
-        uint32_t bytes_written = file_write(wr_file, buf, count);
-        return bytes_written;
-    }else{
-        console_put_str("sys_write: not allowd to write file without O_RDWR or O_WRONLY\n");
-        return -1;
-    }
+    
 }
 
 /*从文件描述符指向的文件读取count个字节到buf, 若成功则返回读出的字节数, 到文件尾则返回-1*/
 int32_t sys_read(int32_t fd, void* buf, uint32_t count){
     ASSERT(buf != NULL);
     int32_t ret = -1;
-    if(fd < 0){
+    uint32_t global_fd = 0;
+    if(fd < 0 || fd == stdout_no || fd == stderr_no){
         printk("sys_read: fd_error\n");
-        return -1;
     } else if(fd == stdin_no){
-        char* buffer = buf;
-        uint32_t bytes_read = 0;
-        while(bytes_read < count){
-            *buffer = ioq_getchar(&kbd_buf);
-            bytes_read++;
-            buffer++;
-        }
-        ret = (bytes_read == 0 ? -1 : (int32_t)bytes_read);
-    }else{
-        uint32_t _fd = fd_local2global(fd);
-        ret = file_read(&file_table[_fd], buf, count);
+        if(is_pipe(fd)){
+            ret = pipe_read(fd, buf, count);
+        } else {
+            char* buffer = buf;
+            uint32_t bytes_read = 0;
+            while(bytes_read < count){
+                *buffer = ioq_getchar(&kbd_buf);
+                bytes_read++;
+                buffer++;
+            }
+            ret = (bytes_read == 0 ? -1 : (int32_t)bytes_read);
+        } 
+    } else if(is_pipe(fd)){
+        ret = pipe_read(fd, buf, count);
+    } else{
+        global_fd = fd_local2global(fd);
+        ret = file_read(&file_table[global_fd], buf, count);
     }
     return ret;
 }
@@ -409,12 +431,10 @@ int32_t sys_lseek(int32_t fd, int32_t offset, uint8_t whence){
 
 /*删除文件(非目录), 成功返回0, 失败返回-1*/
 int32_t sys_unlink(const char* pathname){
-    printf("Now in sys_unlink\n");
     ASSERT(strlen(pathname) < MAX_PATH_LEN);
     struct path_search_record searched_record;
     memset(&searched_record, 0, sizeof(struct path_search_record));
     int inode_no = search_file(pathname, &searched_record);
-    printf("After search_file\n");
 
     ASSERT(inode_no != 0);
     if(inode_no == -1){
@@ -435,7 +455,6 @@ int32_t sys_unlink(const char* pathname){
         }
         file_idx++;
     }
-    printf("after while check, file_idx = %d\n",file_idx);
     if(file_idx < MAX_FILE_OPEN){
         dir_close(searched_record.parent_dir);
         printk("file %s is in use, not allowed to delete!\n", pathname);
@@ -445,7 +464,6 @@ int32_t sys_unlink(const char* pathname){
     ASSERT(file_idx == MAX_FILE_OPEN);
     /*为delete_dir_entry申请缓冲区*/
     void* io_buf = sys_malloc(SECTOR_SIZE * 2);
-    printf("after sys_malloc\n");
     if(io_buf == NULL){
         dir_close(searched_record.parent_dir);
         printk("sys_unlink: malloc for io_buf failed\n");
@@ -453,9 +471,7 @@ int32_t sys_unlink(const char* pathname){
     }
     struct dir* parent_dir = searched_record.parent_dir;
     delete_dir_entry(cur_part, parent_dir, inode_no, io_buf);
-    printf("After delete_dir_entry\n");
     inode_release(cur_part, inode_no);
-    printf("After inode_release\n");
     sys_free(io_buf);
     dir_close(searched_record.parent_dir);
     return 0;
@@ -801,7 +817,7 @@ void filesys_init(){
             }
             struct disk* hd = &channels[channel_no].devices[dev_no];
             struct partition* part = hd->prim_parts;
-            while(part_idx < 9){   //4个主分区+8个逻辑分区
+            while(part_idx < 12){   //4个主分区+8个逻辑分区
                 if(part_idx==4){ //开始处理逻辑分区
                     part = hd->logic_parts;
                 }

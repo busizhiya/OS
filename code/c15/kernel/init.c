@@ -36,7 +36,7 @@ void init(void){
         int child_pid;
         while(1){
             child_pid = wait(&status);
-            printf("I'm pid, I recieve a child, whose pid is %d, status is %d\n" ,child_pid,status);
+            printf("\ninit: recieved a child, whose pid is %d, status is %d\n" ,child_pid,status);
         }
     } else {
         my_shell();

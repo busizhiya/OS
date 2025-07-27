@@ -19,7 +19,8 @@ enum oflags{    //按位定义
     O_RDONLY = 0,   //只读
     O_WRONLY = 1,   //只写
     O_RDWR = 2,     //读写
-    O_CREAT = 4 //创建
+    O_CREAT = 4,//创建
+    PIPE_FLAG = 0xffff
 };
 enum whence{    //参照
     SEEK_SET = 1,   //文件开头
@@ -58,5 +59,6 @@ int32_t sys_rmdir(const char* pathname);
 char* sys_getcwd(char* buf, uint32_t size);
 int32_t sys_chdir(const char* path);
 int32_t sys_stat(const char* path, struct stat* buf);
+uint32_t fd_local2global(uint32_t local_fd);
 
 #endif

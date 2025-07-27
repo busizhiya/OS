@@ -7,7 +7,7 @@
 #include "super_block.h"
 #include "../lib/string.h"
 #include "../kernel/interrupt.h"
-
+#include "../lib/stdio.h"
 /*存储inode位置*/
 struct inode_position{
     bool two_sec;   //跨扇区
@@ -146,7 +146,6 @@ void inode_delete(struct partition* part, uint32_t inode_no, void* io_buf){
 void inode_release(struct partition* part, uint32_t inode_no){
     struct inode* inode_to_del = inode_open(part, inode_no);
     ASSERT(inode_to_del->i_no == inode_no);
-
     /*回收inode占用的所有块*/
     uint8_t block_idx = 0, block_cnt = 12;
     uint32_t block_bitmap_idx;
@@ -157,6 +156,7 @@ void inode_release(struct partition* part, uint32_t inode_no){
     }
     /*若一级间接表存在, 将128各间接块读到all_blocks中, 并释放以及间接块表占用的扇区*/
     if(inode_to_del->i_sectors[12] != 0){
+        
         ide_read(part->my_disk, inode_to_del->i_sectors[12], all_block + 12, 1);
         block_cnt = 140;
         block_bitmap_idx = inode_to_del->i_sectors[12] - part->sb->data_start_lba;
@@ -181,11 +181,7 @@ void inode_release(struct partition* part, uint32_t inode_no){
     bitmap_set(&part->inode_bitmap, inode_no, 0);
     bitmap_sync(cur_part, inode_no, INODE_BITMAP);
 
-    //以下仅作调试, 实际上可以不用清空
-    void* io_buf = sys_malloc(1024);
-    inode_delete(part, inode_no, io_buf);
-    sys_free(io_buf);
-    inode_close(inode_to_del);
+
 }
 /*初始化new_inode*/
 void inode_init(uint32_t inode_no, struct inode* new_inode){

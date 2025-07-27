@@ -8,6 +8,7 @@
 #include "../../userprog/fork.h"
 #include "../../userprog/exec.h"
 #include "../../userprog/wait_exit.h"
+#include "../../shell/pipe.h"
 
 #define syscall_nr 32
 typedef void* syscall;
@@ -53,5 +54,6 @@ void syscall_init(void){
     syscall_table[SYS_EXECV] = sys_execv;
     syscall_table[SYS_WAIT] = sys_wait;
     syscall_table[SYS_EXIT] = sys_exit;
+    syscall_table[SYS_PIPE] = sys_pipe;
     put_str("syscall_init done\n");
 }

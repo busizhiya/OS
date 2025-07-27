@@ -3,6 +3,7 @@
 #include "../kernel/interrupt.h"
 #include "../kernel/global.h"
 #include "../lib/kernel/stdint.h"
+#include "../lib/stdio.h"
 
 void ioqueue_init(struct ioqueue* ioq){
     lock_init(&ioq->lock);
@@ -37,7 +38,7 @@ static void wakeup(struct task_struct** waiter){
     *waiter = NULL;
 }
 
-char ioq_getchar(struct ioqueue* ioq){
+char ioq_getchar(struct ioqueue* ioq){;
     ASSERT(intr_get_status() == INTR_OFF);
     while (ioq_empty(ioq))
     {
@@ -68,4 +69,16 @@ void ioq_putchar(struct ioqueue* ioq, char byte){
     if(ioq->consumer != NULL){
         wakeup(&ioq->consumer);
     }
+}
+
+/*返回环形缓冲区中的数据长度*/
+uint32_t ioq_length(struct ioqueue* ioq){
+    ASSERT(ioq != NULL);
+    uint32_t len = 0;
+    if(ioq->head >= ioq->tail){
+        len = ioq->head - ioq->tail;
+    } else {
+        len = bufsize - (ioq->tail - ioq->head);
+    }
+    return len;
 }

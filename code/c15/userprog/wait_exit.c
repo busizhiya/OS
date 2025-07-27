@@ -6,7 +6,7 @@
 #include "../lib/stdio.h"
 #include "../thread/thread.h"
 #include "../kernel/debug.h"
-
+#include "../shell/pipe.h"
 /*释放用户资源进程: 
     1. 页表的物理页
     2. 虚拟内存池所占物理页框
@@ -50,12 +50,23 @@ static void release_prog_resource(struct task_struct* release_thread){
     uint32_t bitmap_pg_cnt = (release_thread->userprog_vaddr.vaddr_bitmap.btmp_bytes_len) / PG_SIZE;
     uint8_t* user_vaddr_pool_bitmap = release_thread->userprog_vaddr.vaddr_bitmap.bits;
     mfree_page(PF_KERNEL, user_vaddr_pool_bitmap, bitmap_pg_cnt);
-    uint8_t fd_idx = 3;
-    while(fd_idx < MAX_FILES_PER_PROC){
-        if(release_thread->fd_table[fd_idx] != -1){
-            sys_close(fd_idx);
+    
+    /*g岩壁进程打开的文件*/
+    uint8_t local_fd = 3;
+    while(local_fd < MAX_FILES_PER_PROC){
+        if(release_thread->fd_table[local_fd] != -1){
+            if(is_pipe(local_fd)){  //这里直接用sys_close不行吗?
+                uint32_t global_fd = fd_local2global(local_fd);
+                if(--file_table[global_fd].fd_pos == 0){
+                    mfree_page(PF_KERNEL, file_table[global_fd].fd_inode, 1);
+                    file_table[global_fd].fd_inode = NULL;
+                } 
+            }else {
+                sys_close(local_fd);
+            }
+
         }
-        fd_idx++;
+        local_fd++;
     }
 }
 
