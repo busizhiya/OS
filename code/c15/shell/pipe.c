@@ -68,4 +68,12 @@ uint32_t pipe_write(int32_t fd, const void* buf, uint32_t count){
     return bytes_write;
 }
 
-
+void sys_fd_redirect(uint32_t old_local_fd, uint32_t new_local_fd){
+    struct task_struct* cur = running_thread();
+    if(new_local_fd < 3){
+        cur->fd_table[old_local_fd] = new_local_fd;
+    } else {
+        uint32_t new_global_fd = cur->fd_table[new_local_fd];
+        cur->fd_table[old_local_fd] = new_global_fd;
+    }
+}

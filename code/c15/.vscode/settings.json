@@ -15,6 +15,7 @@
         "stack": "c",
         "random": "c",
         "syscall.h": "c",
-        "pipe.h": "c"
+        "pipe.h": "c",
+        "file.h": "c"
     }
 }

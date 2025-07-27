@@ -143,7 +143,7 @@ void init_thread(struct task_struct* pthread, char* name, int prio){
     pthread->pgdir = NULL;
     pthread->self_kstack = (uint32_t*)((uint32_t)pthread + PG_SIZE);
     
-    pthread->fd_table[0] = 0;
+    pthread->fd_table[0] = 0;   //预留,标准输入、输出、错误
     pthread->fd_table[1] = 1;
     pthread->fd_table[2] = 2;
     uint8_t fd_idx = 3;

@@ -6,7 +6,7 @@
 
 struct file{
     uint32_t fd_pos;    //记录当前文件操作的偏移地址
-    uint32_t fd_flag;   //文件操作标识
+    uint32_t fd_flag;   //文件操作标识  enum oflags
     struct inode* fd_inode; //指向inode队列中的inode
 };
 enum std_fd{

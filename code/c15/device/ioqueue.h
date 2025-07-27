@@ -5,7 +5,7 @@
 #include "../thread/thread.h"
 #include "../thread/sync.h"
 
-#define bufsize 64
+#define bufsize 256
 
 //生产者
 struct ioqueue{
