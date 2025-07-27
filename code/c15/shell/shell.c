@@ -146,7 +146,12 @@ void my_shell(void){
         else {
             int32_t pid = fork();
             if(pid){
-                while(1);
+                int32_t status;
+                int32_t child_pid = wait(&status);
+                if(child_pid == -1){
+                    PANIC("myshell: no child\n");
+                }
+                printf("child_pid %d, it's status: %d\n", child_pid, status);
             } else {
                 make_clear_abs_path(argv[0], final_path);
                 argv[0] = final_path;

@@ -75,6 +75,7 @@ struct task_struct{
     struct mem_block_desc u_block_descs[DESC_CNT];
     uint32_t cwd_inode_nr;  //进程所在的工作目录inode编号
     int16_t parent_pid;
+    int8_t exit_status;
     uint32_t stack_magic;   //栈边界,判断溢出
 
 };
@@ -90,5 +91,10 @@ void thread_create(struct task_struct* pthread, thread_func function, void* func
 void thread_yield(void);
 pid_t fork_pid(void);
 void sys_ps(void);
+void thread_exit(struct task_struct* thread_over, bool need_schedule);
+struct task_struct* pid2thread(int32_t pid);
 
+
+extern struct list thread_ready_list;//就绪队列
+extern struct list thread_all_list;//所有任务队列
 #endif

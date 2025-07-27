@@ -22,26 +22,32 @@ int main(void)
     init_all();
     printf("Finish init_all\n");
 
-    uint32_t file_size = 10276;
-    uint32_t sec_cnt = DIV_ROUND_UP(file_size, 512);
-    struct disk* sda = &channels[0].devices[0];
-    void* prog_buf = sys_malloc(sec_cnt*PG_SIZE);
-    ide_read(sda, 300, prog_buf, sec_cnt);
-    int32_t fd = sys_open("/prog_no_arg", O_CREAT | O_RDWR);
+    int32_t fd = sys_open("/file1",O_CREAT|O_RDWR);
     if(fd != -1){
-        if(sys_write(fd, prog_buf, file_size) == -1){
-            printf("file write error\n");
-            while(1);
-        }
-        sys_free(prog_buf);
+        sys_write(fd, "Hello world! from file1\n",25);
         sys_close(fd);
-        
     }
+
+    // uint32_t file_size = 10936;
+    // uint32_t sec_cnt = DIV_ROUND_UP(file_size, 512);
+    // struct disk* sda = &channels[0].devices[0];
+    // void* prog_buf = sys_malloc(sec_cnt*PG_SIZE);
+    // ide_read(sda, 300, prog_buf, sec_cnt);
+    // int32_t fd = sys_open("/cat", O_CREAT | O_RDWR);
+    // if(fd != -1){
+    //     if(sys_write(fd, prog_buf, file_size) == -1){
+    //         printf("file write error\n");
+    //         while(1);
+    //     }
+        
+    //     sys_close(fd);
+    // }
+    // sys_free(prog_buf);
     
     intr_enable();
     clear();
     print_prompt();
-    while(1);
+    thread_exit(running_thread(), true);
     return 0;
 }
 

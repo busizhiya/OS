@@ -1,0 +1,33 @@
+#include "../lib/stdio.h"
+#include "../lib/user/syscall.h"
+#include "../lib/string.h"
+
+int main(int argc, char** argv){
+    int arg_idx = 0;
+    printf("agrc=%d",argc);
+    while(arg_idx < argc){
+        printf("argv[%d] is %s\n", arg_idx, argv[arg_idx]);
+        arg_idx++;
+    }
+
+    int pid = fork();
+    if(pid){
+        int delay = 90000;
+        while(delay--);
+        printf("\n  I'm father prog, my pid = %d\n",getpid());
+        ps();
+    } else {
+        char abs_path[512];
+        memset(abs_path, 0, 512);
+        printf("\n  I'm child_prog, my pid = %d\n, I will exec %s\n", getpid(), argv[1]);
+        if(argv[1][0] != '/'){
+            getcwd(abs_path, 512);
+            strcat(abs_path, "/");
+            strcat(abs_path, argv[1]);
+            execv(abs_path, (const char **)argv);
+        } else{
+            execv(argv[1], (const char **)argv);
+        }
+    }
+    while(1);
+}

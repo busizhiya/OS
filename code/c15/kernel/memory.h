@@ -48,5 +48,6 @@ void* get_a_page_without_opvaddrbitmap(enum pool_flags pf, uint32_t vaddr);
 void mfree_page(enum pool_flags pf, void* _vaddr, uint32_t pg_cnt);
 uint32_t* pte_ptr(uint32_t vaddr);
 uint32_t* pde_ptr(uint32_t vaddr);
+void free_a_phy_page(uint32_t pg_phy_addr);
 
 #endif

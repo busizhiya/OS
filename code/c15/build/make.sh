@@ -69,5 +69,5 @@ for i in $(ls -l *.c | awk -F ' ' '{print $9}' | awk -F '.' '{print $1}')
 do
         x86_64-elf-gcc -o ../build/command/$i.o $i.c -c -m32 -ffreestanding -nostdlib -fno-builtin
 	cd ../build
-	/usr/local/Cellar/lld/20.1.7/bin/ld.lld -Ttext 0x8050000 --image-base=0xc0000000 -e main -o ../command/$i command/$i.o stdio.o debug.o syscall.o string.o print_asm.o
+	/usr/local/Cellar/lld/20.1.7/bin/ld.lld -Ttext 0x8050000 --image-base=0xc0000000 -o ../command/$i command/$i.o simple_crt.a
 done

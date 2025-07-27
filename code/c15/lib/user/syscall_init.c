@@ -7,6 +7,8 @@
 #include "../../fs/fs.h"
 #include "../../userprog/fork.h"
 #include "../../userprog/exec.h"
+#include "../../userprog/wait_exit.h"
+
 #define syscall_nr 32
 typedef void* syscall;
 syscall syscall_table[syscall_nr];
@@ -49,5 +51,7 @@ void syscall_init(void){
     syscall_table[SYS_STAT] = sys_stat;
     syscall_table[SYS_PS] = sys_ps;
     syscall_table[SYS_EXECV] = sys_execv;
+    syscall_table[SYS_WAIT] = sys_wait;
+    syscall_table[SYS_EXIT] = sys_exit;
     put_str("syscall_init done\n");
 }

@@ -11,6 +11,7 @@
 #include "../kernel/debug.h"
 #include "../device/console.h"
 #include "../device/ioqueue.h"
+#include "../lib/stdio.h"
 
 extern uint8_t channel_cnt;
 extern struct ide_channel channels[2];
@@ -408,10 +409,13 @@ int32_t sys_lseek(int32_t fd, int32_t offset, uint8_t whence){
 
 /*删除文件(非目录), 成功返回0, 失败返回-1*/
 int32_t sys_unlink(const char* pathname){
+    printf("Now in sys_unlink\n");
     ASSERT(strlen(pathname) < MAX_PATH_LEN);
     struct path_search_record searched_record;
     memset(&searched_record, 0, sizeof(struct path_search_record));
     int inode_no = search_file(pathname, &searched_record);
+    printf("After search_file\n");
+
     ASSERT(inode_no != 0);
     if(inode_no == -1){
         printk("file %s not found\n", pathname);
@@ -431,23 +435,27 @@ int32_t sys_unlink(const char* pathname){
         }
         file_idx++;
     }
+    printf("after while check, file_idx = %d\n",file_idx);
     if(file_idx < MAX_FILE_OPEN){
         dir_close(searched_record.parent_dir);
         printk("file %s is in use, not allowed to delete!\n", pathname);
         return -1;
     }
+
     ASSERT(file_idx == MAX_FILE_OPEN);
     /*为delete_dir_entry申请缓冲区*/
     void* io_buf = sys_malloc(SECTOR_SIZE * 2);
+    printf("after sys_malloc\n");
     if(io_buf == NULL){
         dir_close(searched_record.parent_dir);
         printk("sys_unlink: malloc for io_buf failed\n");
         return -1;
     }
-
     struct dir* parent_dir = searched_record.parent_dir;
     delete_dir_entry(cur_part, parent_dir, inode_no, io_buf);
+    printf("After delete_dir_entry\n");
     inode_release(cur_part, inode_no);
+    printf("After inode_release\n");
     sys_free(io_buf);
     dir_close(searched_record.parent_dir);
     return 0;

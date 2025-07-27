@@ -11,6 +11,7 @@
 #include "../device/ide.h"
 #include "../fs/fs.h"
 #include "../shell/shell.h"
+#include "../lib/stdio.h"
 
 void init_all()
 {
@@ -31,9 +32,13 @@ void init_all()
 void init(void){
     uint32_t ret_pid = fork();
     if(ret_pid){
-        while(1);
+        int status;
+        int child_pid;
+        while(1){
+            child_pid = wait(&status);
+            printf("I'm pid, I recieve a child, whose pid is %d, status is %d\n" ,child_pid,status);
+        }
     } else {
         my_shell();
     }
-    while(1);
 }

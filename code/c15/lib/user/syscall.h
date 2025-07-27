@@ -27,6 +27,8 @@ enum SYSCALL_NR{
     SYS_STAT,
     SYS_PS,
     SYS_EXECV,
+    SYS_WAIT,
+    SYS_EXIT
 };
 void syscall_init(void);
 
@@ -53,4 +55,6 @@ int32_t stat(const char* path, struct stat* buf);
 int32_t chdir(const char* path);
 void ps(void);
 int32_t execv(const char* path, const char* argv[]);
+void exit(int32_t status);
+pid_t wait(int32_t* status);
 #endif

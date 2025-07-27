@@ -22,6 +22,6 @@ echo "kernel.bin linked"
 cd ..
 
 dd if=kernel.bin of=hd60M.img bs=512 count=200 seek=9 conv=notrunc
-dd if=command/prog_no_arg of=hd60M.img bs=512 count=21 seek=300 conv=notrunc
+dd if=command/cat of=hd60M.img bs=512 count=25 seek=300 conv=notrunc
 cp hd60M.img /usr/local/Cellar/bochs/3.0/
 echo "New hd60M.img copyed"
