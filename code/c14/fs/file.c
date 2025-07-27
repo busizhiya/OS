@@ -314,7 +314,7 @@ int32_t file_write(struct file* file, const void* buf, uint32_t count){
                 }
                 if(block_idx < 12){ //新创建的0~11块直接存入all_blocks
                     ASSERT(file->fd_inode->i_sectors[block_idx] == 0);
-                    file->fd_inode->i_sectors[block_idx] = all_blocks[block_idx] = block_idx;
+                    file->fd_inode->i_sectors[block_idx] = all_blocks[block_idx] = block_lba;
                 }else{  //间接块只写入all_block中, 待全部分配后一次性同步到硬盘中
                     all_blocks[block_idx] = block_lba;
                 }
