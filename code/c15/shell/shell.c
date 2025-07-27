@@ -13,8 +13,8 @@
 static char cmd_line[cmd_len] = {0};
 
 /*当前目录的缓存*/
-char cwd_cache[64] = {0};
-char final_path[MAX_PATH_LEN] = {0};
+char cwd_cache[MAX_PATH_LEN] = {0};
+char final_path[MAX_PATH_LEN];
 char* argv[MAX_ARG_NR];
 int32_t argc = -1;
 
@@ -140,8 +140,30 @@ void my_shell(void){
         else if(!strcmp("rm", argv[0])){
             buildin_rm(argc, argv);
         }
+        else if(!strcmp("ps", argv[0])){
+            buildin_ps(argc, argv);
+        }
         else {
-            printf("external command\n");
+            int32_t pid = fork();
+            if(pid){
+                while(1);
+            } else {
+                make_clear_abs_path(argv[0], final_path);
+                argv[0] = final_path;
+                struct stat file_stat;
+                memset(&file_stat, 0, sizeof(struct stat));
+                if(stat(argv[0], &file_stat) == -1){
+                    printf("my_shell: cannot access %s: No such file or directory\n", argv[0]);
+                }else {
+                    execv(argv[0], (const char**)argv);
+                }
+                while(1);
+            }
+        }
+        int32_t arg_idx = 0;
+        while(arg_idx < MAX_ARG_NR){
+            argv[arg_idx] = NULL;
+            arg_idx++;
         }
     }
     PANIC("my_shell: Unexpected error\n");

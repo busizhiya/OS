@@ -10,6 +10,7 @@
 #include "../lib/user/syscall.h"
 #include "../device/ide.h"
 #include "../fs/fs.h"
+#include "../shell/shell.h"
 
 void init_all()
 {
@@ -24,4 +25,15 @@ void init_all()
     syscall_init();
     ide_init();
     filesys_init();
+}
+
+/*init进程*/
+void init(void){
+    uint32_t ret_pid = fork();
+    if(ret_pid){
+        while(1);
+    } else {
+        my_shell();
+    }
+    while(1);
 }

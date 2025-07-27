@@ -6,6 +6,7 @@
 #include "../lib/string.h"
 #include "../thread/sync.h"
 #include "interrupt.h"
+#include "../lib/stdio.h"
 
 #define PG_SIZE 4096
 
@@ -232,7 +233,7 @@ void* get_user_pages(uint32_t pg_cnt){
 void* get_a_page(enum pool_flags pf, uint32_t vaddr){
     struct pool* mem_pool = pf & PF_KERNEL ? &kernel_pool : &user_pool;
     lock_acquire(&mem_pool->lock);
-
+    
     struct task_struct* cur = running_thread();
     int32_t bit_idx = -1;
     /*如果是用户进程申请用户内存, 就修改用户进程自己的虚拟地址位图*/

@@ -1,5 +1,5 @@
-#ifndef __USERPORG_TSS_H
-#define __USERPORG_TSS_H
+#ifndef __USERPROG_TSS_H
+#define __USERPROG_TSS_H
 #include "../thread/thread.h"
 
 void tss_init();

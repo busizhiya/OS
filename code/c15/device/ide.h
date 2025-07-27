@@ -39,5 +39,6 @@ void ide_read(struct disk* hd, uint32_t lba, void* buf, uint32_t sec_cnt);
 void ide_write(struct disk* hd, uint32_t lba, void* buf, uint32_t sec_cnt);
 
 
+extern struct ide_channel channels[2];
 
 #endif

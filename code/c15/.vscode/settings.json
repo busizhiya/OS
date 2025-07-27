@@ -3,6 +3,11 @@
         "string.h": "c",
         "typeinfo": "c",
         "chrono": "c",
-        "text_encoding": "c"
+        "text_encoding": "c",
+        "thread.h": "c",
+        "stdint.h": "c",
+        "debug.h": "c",
+        "stdio.h": "c",
+        "timer.h": "c"
     }
 }

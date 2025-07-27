@@ -6,6 +6,7 @@
 #include "../lib/kernel/bitmap.h"
 
 #define MAX_FILES_PER_PROC 8
+#define TASK_NAME_LEN 16
 typedef void thread_func(void*);
 typedef int16_t pid_t;
 enum task_status{
@@ -63,7 +64,7 @@ struct task_struct{
     pid_t pid;
     enum task_status status;
     uint8_t priority;
-    char name[16];
+    char name[TASK_NAME_LEN];
     uint8_t ticks;
     uint32_t elapsed_ticks;
     int32_t fd_table[MAX_FILES_PER_PROC];
@@ -88,5 +89,6 @@ void thread_block(enum task_status stat);
 void thread_create(struct task_struct* pthread, thread_func function, void* func_arg);
 void thread_yield(void);
 pid_t fork_pid(void);
+void sys_ps(void);
 
 #endif
